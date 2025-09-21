@@ -70,4 +70,11 @@ journalctl -u cloudcurio-worker -f
 - Set `.env.local` values: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`
 - Add webhook endpoint to Stripe: `https://yourdomain/api/stripe/webhook` and set `STRIPE_WEBHOOK_SECRET`
 
+### 10) Code Review Crew
+This repository includes a CrewAI crew that can analyze the codebase and generate documentation.
+
+To run the code review crew:
+1. Set your OpenAI API key: `export OPENAI_API_KEY=your-api-key`
+2. Run the crew: `pnpm docs:generate` or `./scripts/run-code-review-crew.sh`
+
 See `docs/SETUP.md` and `docs/COMPLIANCE.md` for details.
