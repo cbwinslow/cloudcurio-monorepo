@@ -1,12 +1,34 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 import concurrent.futures as cf
-import json, os, sys, shutil, subprocess, tempfile, time
+import json, os, sys, shutil, subprocess, tempfile, time, traceback
 from pathlib import Path
 from typing import Optional
 import urllib.request
-def log(msg: str, **meta):
-    print(json.dumps({"ts": time.strftime('%Y-%m-%dT%H:%M:%S'), "msg": msg, **meta})); sys.stdout.flush()
+import logging
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+def log(msg: str, level: str = "info", **meta):
+    """Enhanced logging function with multiple log levels"""
+    log_entry = {
+        "ts": time.strftime('%Y-%m-%dT%H:%M:%S'),
+        "level": level,
+        "msg": msg,
+        **meta
+    }
+    
+    # Also log to Python's logging system
+    log_func = getattr(logger, level, logger.info)
+    log_func(f"{msg} {json.dumps(meta) if meta else ''}")
+    
+    print(json.dumps(log_entry))
+    sys.stdout.flush()
 def run(cmd: list[str], cwd: Optional[str]=None, env: Optional[dict]=None, timeout=1800):
     p = subprocess.Popen(cmd, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     try: out, err = p.communicate(timeout=timeout); return p.returncode, out, err
@@ -44,28 +66,90 @@ def run_in_container(image: str, gpu: Device, repo: Path) -> str:
     code,out,err = run(['docker','run','--rm','--gpus',f'device={gpu.index}','-v',f'{repo}:/work','-w','/work',image,'bash','-lc','echo container-ok && ls -1 | head -50']); return f"Container({image}) exit={code}\n{out or err}"
 def worker_loop(dev: Device, api: str, token: str, workdir: Path, image: str|None):
     while True:
-        health = dev.health_check()
-        if not dev.healthy: log('device unhealthy, draining', gpu=dev.label, health=health); time.sleep(5); continue
-        claim = http_json('POST', f"{api}/api/reviews/claim", { 'gpu': dev.label, 'classes': [dev.klass] }, token); job = claim.get('job')
-        if not job: time.sleep(3); continue
-        jid = job['id']; repo_url = job['repoUrl']; log('job-claimed', id=jid, repo=repo_url, gpu=dev.label); repo = None
         try:
-            os.environ['CUDA_VISIBLE_DEVICES'] = dev.index; repo = clone_repo(repo_url, workdir)
-            analysis = static_analysis(repo); cont = ''; 
-            if image: cont = f"<h2>Container Step</h2><pre><code>{run_in_container(image, dev, repo)}</code></pre>"
-            report = render_report(repo_url, dev, analysis + cont); http_json('POST', f"{api}/api/reviews/{jid}/complete", { 'status':'done', 'content': report, 'gpu': dev.label }, token); log('job-complete', id=jid)
+            health = dev.health_check()
+            if not dev.healthy: 
+                log('device unhealthy, draining', level="warning", gpu=dev.label, health=health)
+                time.sleep(5)
+                continue
+            claim = http_json('POST', f"{api}/api/reviews/claim", { 'gpu': dev.label, 'classes': [dev.klass] }, token)
+            job = claim.get('job')
+            if not job: 
+                time.sleep(3)
+                continue
+            jid = job['id']
+            repo_url = job['repoUrl']
+            log('job-claimed', id=jid, repo=repo_url, gpu=dev.label)
+            repo = None
+            try:
+                os.environ['CUDA_VISIBLE_DEVICES'] = dev.index
+                repo = clone_repo(repo_url, workdir)
+                analysis = static_analysis(repo)
+                cont = ''
+                if image: 
+                    cont = f"<h2>Container Step</h2><pre><code>{run_in_container(image, dev, repo)}</code></pre>"
+                report = render_report(repo_url, dev, analysis + cont)
+                http_json('POST', f"{api}/api/reviews/{jid}/complete", { 'status':'done', 'content': report, 'gpu': dev.label }, token)
+                log('job-complete', id=jid)
+            except Exception as e:
+                error_traceback = traceback.format_exc()
+                log('job-error', level="error", id=jid, error=str(e), traceback=error_traceback)
+                try: 
+                    http_json('POST', f"{api}/api/reviews/{jid}/complete", { 'status':'error', 'error': str(e), 'traceback': error_traceback, 'gpu': dev.label }, token)
+                except Exception as http_error:
+                    log('failed-to-report-error', level="error", id=jid, http_error=str(http_error))
+            finally:
+                if repo: 
+                    try:
+                        shutil.rmtree(repo, ignore_errors=True)
+                    except Exception as cleanup_error:
+                        log('cleanup-error', level="warning", id=jid, error=str(cleanup_error))
+                time.sleep(1)
         except Exception as e:
-            try: http_json('POST', f"{api}/api/reviews/{jid}/complete", { 'status':'error', 'error': str(e), 'gpu': dev.label }, token)
-            except Exception: pass
-            log('job-error', id=jid, error=str(e))
-        finally:
-            if repo: shutil.rmtree(repo, ignore_errors=True); time.sleep(1)
+            log('worker-loop-error', level="error", error=str(e), traceback=traceback.format_exc())
+            time.sleep(5)  # Wait a bit before retrying
 def main():
-    api = os.environ.get('API_BASE','http://localhost:3000'); token = os.environ['WORKER_TOKEN']
-    mapping = json.loads(os.environ.get('GPU_MAPPING','{"rtx3060":"0","k80:0":"1","k80:1":"2","k40":"3"}'))
-    classes = json.loads(os.environ.get('GPU_CLASSES','{"rtx3060":"quick","k80:0":"heavy","k80:1":"heavy","k40":"legacy"}'))
-    image = os.environ.get('CONTAINER_IMAGE'); workdir = Path(os.environ.get('REPOS_BASE_DIR','/var/lib/cloudcurio/repos')); workdir.mkdir(parents=True, exist_ok=True)
-    devices = [Device(lbl, idx, classes.get(lbl,'quick')) for lbl,idx in mapping.items()]
-    with cf.ThreadPoolExecutor(max_workers=len(devices)) as ex: 
-        for d in devices: ex.submit(worker_loop, d, api, token, workdir, image); ex.shutdown()
+    try:
+        api = os.environ.get('API_BASE','http://localhost:3000')
+        if 'WORKER_TOKEN' not in os.environ:
+            log('missing WORKER_TOKEN environment variable', level="error")
+            sys.exit(1)
+        token = os.environ['WORKER_TOKEN']
+        
+        mapping_json = os.environ.get('GPU_MAPPING','{"rtx3060":"0","k80:0":"1","k80:1":"2","k40":"3"}')
+        classes_json = os.environ.get('GPU_CLASSES','{"rtx3060":"quick","k80:0":"heavy","k80:1":"heavy","k40":"legacy"}')
+        
+        try:
+            mapping = json.loads(mapping_json)
+        except json.JSONDecodeError as e:
+            log('invalid GPU_MAPPING JSON', level="error", error=str(e))
+            sys.exit(1)
+            
+        try:
+            classes = json.loads(classes_json)
+        except json.JSONDecodeError as e:
+            log('invalid GPU_CLASSES JSON', level="error", error=str(e))
+            sys.exit(1)
+        
+        image = os.environ.get('CONTAINER_IMAGE')
+        workdir = Path(os.environ.get('REPOS_BASE_DIR','/var/lib/cloudcurio/repos'))
+        workdir.mkdir(parents=True, exist_ok=True)
+        
+        devices = [Device(lbl, idx, classes.get(lbl,'quick')) for lbl,idx in mapping.items()]
+        log('worker-starting', device_count=len(devices))
+        
+        with cf.ThreadPoolExecutor(max_workers=len(devices)) as ex: 
+            futures = [ex.submit(worker_loop, d, api, token, workdir, image) for d in devices]
+            # Wait for all futures to complete (which they won't as worker_loop runs indefinitely)
+            for future in cf.as_completed(futures):
+                try:
+                    future.result()
+                except Exception as e:
+                    log('worker-thread-error', level="error", error=str(e), traceback=traceback.format_exc())
+    except KeyboardInterrupt:
+        log('worker-interrupted', level="info")
+        sys.exit(0)
+    except Exception as e:
+        log('worker-fatal-error', level="error", error=str(e), traceback=traceback.format_exc())
+        sys.exit(1)
 if __name__ == '__main__': main()
