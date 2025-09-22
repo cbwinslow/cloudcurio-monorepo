@@ -1,0 +1,121 @@
+{
+  "name": "OSINT Entity Linking Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "query",
+        "database": "osint",
+        "query": "MATCH (p:Person {name: '{{ $json.person }}'}), (d:Domain {name: '{{ $json.domain }}'}) RETURN p, d"
+      },
+      "id": "2",
+      "name": "Find Entities",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "http://localai:8080/v1/completions",
+        "options": {},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "key": "prompt",
+              "value": "Analyze the relationship between person {{ $json.person }} and domain {{ $json.domain }}. What is the nature of their connection?"
+            },
+            {
+              "key": "model",
+              "value": "gpt-4"
+            }
+          ]
+        }
+      },
+      "id": "3",
+      "name": "Relationship Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "node": "PERSON_OWNS_DOMAIN",
+        "properties": [
+          {
+            "key": "confidence",
+            "value": "={{ $json.confidence }}"
+          }
+        ]
+      },
+      "id": "4",
+      "name": "Create Relationship",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Find Entities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Entities": {
+      "main": [
+        [
+          {
+            "node": "Relationship Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relationship Analysis": {
+      "main": [
+        [
+          {
+            "node": "Create Relationship",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "osint_entity_linking",
+  "meta": {
+    "instanceId": "osint-platform"
+  }
+}

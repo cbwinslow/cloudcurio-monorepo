@@ -1,0 +1,121 @@
+{
+  "name": "OSINT Domain Research Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "url": "http://searxng:8080",
+        "options": {},
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.domain }}"
+            }
+          ]
+        }
+      },
+      "id": "2",
+      "name": "Web Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "query",
+        "database": "osint",
+        "query": "INSERT INTO domains (domain, created_at) VALUES ('{{ $json.domain }}', NOW())"
+      },
+      "id": "3",
+      "name": "Store Domain",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "node": "Domain Research",
+        "properties": [
+          {
+            "key": "domain",
+            "value": "={{ $json.domain }}"
+          },
+          {
+            "key": "status",
+            "value": "completed"
+          }
+        ]
+      },
+      "id": "4",
+      "name": "Update Neo4j",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Web Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Search": {
+      "main": [
+        [
+          {
+            "node": "Store Domain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Domain": {
+      "main": [
+        [
+          {
+            "node": "Update Neo4j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "osint_domain_research",
+  "meta": {
+    "instanceId": "osint-platform"
+  }
+}

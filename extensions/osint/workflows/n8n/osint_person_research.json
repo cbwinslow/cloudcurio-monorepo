@@ -1,0 +1,164 @@
+{
+  "name": "OSINT Person Research Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "url": "http://searxng:8080",
+        "options": {},
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.name }} social media"
+            }
+          ]
+        }
+      },
+      "id": "2",
+      "name": "Social Media Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "query",
+        "database": "osint",
+        "query": "SELECT * FROM domains WHERE registrant LIKE '%{{ $json.name }}%'"
+      },
+      "id": "3",
+      "name": "Domain Search",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "http://localai:8080/v1/completions",
+        "options": {},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "key": "prompt",
+              "value": "Create a comprehensive profile for {{ $json.name }} based on the following social media and domain data: {{ $json.social_data }}, {{ $json.domain_data }}"
+            },
+            {
+              "key": "model",
+              "value": "gpt-4"
+            }
+          ]
+        }
+      },
+      "id": "4",
+      "name": "Profile Generation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "node": "Person",
+        "properties": [
+          {
+            "key": "name",
+            "value": "={{ $json.name }}"
+          },
+          {
+            "key": "profile",
+            "value": "={{ $json.profile }}"
+          }
+        ]
+      },
+      "id": "5",
+      "name": "Update Neo4j",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Social Media Search",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Domain Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Social Media Search": {
+      "main": [
+        [
+          {
+            "node": "Profile Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Domain Search": {
+      "main": [
+        [
+          {
+            "node": "Profile Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profile Generation": {
+      "main": [
+        [
+          {
+            "node": "Update Neo4j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "osint_person_research",
+  "meta": {
+    "instanceId": "osint-platform"
+  }
+}

@@ -1,0 +1,138 @@
+<div class="tabs">
+  <div class="pad">
+    <h3>OSINT Workflow Dashboard</h3>
+    <p>Manage and execute automated OSINT research workflows.</p>
+    
+    <div class="panel">
+      <h4>Available Workflows</h4>
+      <div class="toolbar">
+        <button id="refresh-workflows-btn" class="button">Refresh</button>
+      </div>
+      
+      <table id="workflows-table" class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Domain Research</td>
+            <td>Research domains and their associated information</td>
+            <td>Active</td>
+            <td>
+              <button class="button small workflow-execute" data-workflow="osint_domain_research">Execute</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Email Research</td>
+            <td>Validate and analyze email addresses</td>
+            <td>Active</td>
+            <td>
+              <button class="button small workflow-execute" data-workflow="osint_email_research">Execute</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Person Research</td>
+            <td>Research people and their online presence</td>
+            <td>Active</td>
+            <td>
+              <button class="button small workflow-execute" data-workflow="osint_person_research">Execute</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Entity Linking</td>
+            <td>Link related entities in the knowledge graph</td>
+            <td>Active</td>
+            <td>
+              <button class="button small workflow-execute" data-workflow="osint_entity_linking">Execute</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Master Workflow</td>
+            <td>Orchestrate all research workflows</td>
+            <td>Active</td>
+            <td>
+              <button class="button small workflow-execute" data-workflow="osint_master_workflow">Execute</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="panel">
+      <h4>Recent Executions</h4>
+      <div class="toolbar">
+        <button id="refresh-executions-btn" class="button">Refresh</button>
+      </div>
+      
+      <table id="executions-table" class="table">
+        <thead>
+          <tr>
+            <th>Workflow</th>
+            <th>Execution ID</th>
+            <th>Status</th>
+            <th>Progress</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Domain Research</td>
+            <td>550e8400-e29b-41d4-a716-446655440000</td>
+            <td>Completed</td>
+            <td>100%</td>
+            <td>
+              <button class="button small">View Results</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Email Research</td>
+            <td>660f9511-f30c-52e5-b827-557766551111</td>
+            <td>In Progress</td>
+            <td>75%</td>
+            <td>
+              <button class="button small">View Results</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Workflow dashboard JavaScript
+  document.addEventListener('DOMContentLoaded', function() {
+    // Refresh workflows button
+    const refreshWorkflowsBtn = document.getElementById('refresh-workflows-btn');
+    if (refreshWorkflowsBtn) {
+      refreshWorkflowsBtn.addEventListener('click', function() {
+        // Refresh workflows list
+        alert('Workflows refresh functionality would be implemented here');
+      });
+    }
+    
+    // Refresh executions button
+    const refreshExecutionsBtn = document.getElementById('refresh-executions-btn');
+    if (refreshExecutionsBtn) {
+      refreshExecutionsBtn.addEventListener('click', function() {
+        // Refresh executions list
+        alert('Executions refresh functionality would be implemented here');
+      });
+    }
+    
+    // Workflow execute buttons
+    const executeButtons = document.querySelectorAll('.workflow-execute');
+    executeButtons.forEach(function(button) {
+      button.addEventListener('click', function() {
+        const workflowId = this.getAttribute('data-workflow');
+        // Execute workflow
+        alert('Workflow ' + workflowId + ' execution functionality would be implemented here');
+      });
+    });
+  });
+</script>

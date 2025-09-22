@@ -1,0 +1,166 @@
+{
+  "name": "OSINT Master Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "osint_domain_research"
+      },
+      "id": "2",
+      "name": "Domain Research",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        450,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "osint_email_research"
+      },
+      "id": "3",
+      "name": "Email Research",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "osint_person_research"
+      },
+      "id": "4",
+      "name": "Person Research",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        450,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "osint_entity_linking"
+      },
+      "id": "5",
+      "name": "Entity Linking",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "http://ai-agents:8000/generate-report",
+        "options": {},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "key": "data",
+              "value": "={{ $json }}"
+            }
+          ]
+        }
+      },
+      "id": "6",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        850,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Domain Research",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Research",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Person Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Domain Research": {
+      "main": [
+        [
+          {
+            "node": "Entity Linking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Research": {
+      "main": [
+        [
+          {
+            "node": "Entity Linking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Person Research": {
+      "main": [
+        [
+          {
+            "node": "Entity Linking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entity Linking": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "osint_master_workflow",
+  "meta": {
+    "instanceId": "osint-platform"
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "name": "OSINT Email Research Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "query",
+        "database": "osint",
+        "query": "SELECT * FROM email_validators WHERE email = '{{ $json.email }}'"
+      },
+      "id": "2",
+      "name": "Validate Email",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "url": "http://localai:8080/v1/completions",
+        "options": {},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "key": "prompt",
+              "value": "Analyze this email address {{ $json.email }} for potential social engineering risks"
+            },
+            {
+              "key": "model",
+              "value": "gpt-4"
+            }
+          ]
+        }
+      },
+      "id": "3",
+      "name": "AI Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "node": "Email",
+        "properties": [
+          {
+            "key": "address",
+            "value": "={{ $json.email }}"
+          },
+          {
+            "key": "risk_level",
+            "value": "={{ $json.risk_level }}"
+          }
+        ]
+      },
+      "id": "4",
+      "name": "Update Neo4j",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Validate Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Email": {
+      "main": [
+        [
+          {
+            "node": "AI Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Analysis": {
+      "main": [
+        [
+          {
+            "node": "Update Neo4j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "osint_email_research",
+  "meta": {
+    "instanceId": "osint-platform"
+  }
+}
