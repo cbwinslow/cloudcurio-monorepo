@@ -1,0 +1,8 @@
+name: sentiment-analyzer
+version: 1.0.0
+description: Analyzes sentiment of text data
+type: analysis
+dependencies:
+  - textblob
+configuration:
+  model: textblob

@@ -1,0 +1,121 @@
+# Traefik Dynamic Configuration
+
+# HTTP routers configuration
+http:
+  routers:
+    api:
+      rule: "Host(`traefik.osint.local`)"
+      service: "api@internal"
+      entryPoints:
+        - "websecure"
+      tls: {}
+      
+    beef:
+      rule: "Host(`beef.osint.local`)"
+      service: "beef"
+      entryPoints:
+        - "websecure"
+      tls: {}
+      
+    searxng:
+      rule: "Host(`searxng.osint.local`)"
+      service: "searxng"
+      entryPoints:
+        - "websecure"
+      tls: {}
+      
+    localai:
+      rule: "Host(`localai.osint.local`)"
+      service: "localai"
+      entryPoints:
+        - "websecure"
+      tls: {}
+      
+    ollama:
+      rule: "Host(`ollama.osint.local`)"
+      service: "ollama"
+      entryPoints:
+        - "websecure"
+      tls: {}
+      
+    openwebui:
+      rule: "Host(`openwebui.osint.local`)"
+      service: "openwebui"
+      entryPoints:
+        - "websecure"
+      tls: {}
+      
+    grafana:
+      rule: "Host(`grafana.osint.local`)"
+      service: "grafana"
+      entryPoints:
+        - "websecure"
+      tls: {}
+      
+    portainer:
+      rule: "Host(`portainer.osint.local`)"
+      service: "portainer"
+      entryPoints:
+        - "websecure"
+      tls: {}
+      
+    kali:
+      rule: "Host(`kali.osint.local`)"
+      service: "kali"
+      entryPoints:
+        - "websecure"
+      tls: {}
+      
+    blackarch:
+      rule: "Host(`blackarch.osint.local`)"
+      service: "blackarch"
+      entryPoints:
+        - "websecure"
+      tls: {}
+
+  # Services configuration
+  services:
+    beef:
+      loadBalancer:
+        servers:
+          - url: "http://beef:3000"
+          
+    searxng:
+      loadBalancer:
+        servers:
+          - url: "http://searxng:8080"
+          
+    localai:
+      loadBalancer:
+        servers:
+          - url: "http://localai:8080"
+          
+    ollama:
+      loadBalancer:
+        servers:
+          - url: "http://ollama:11434"
+          
+    openwebui:
+      loadBalancer:
+        servers:
+          - url: "http://openwebui:8080"
+          
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"
+          
+    portainer:
+      loadBalancer:
+        servers:
+          - url: "http://portainer:9000"
+          
+    kali:
+      loadBalancer:
+        servers:
+          - url: "http://kali-osint:80"
+          
+    blackarch:
+      loadBalancer:
+        servers:
+          - url: "http://blackarch-osint:80"

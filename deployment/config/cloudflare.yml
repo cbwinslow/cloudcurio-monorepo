@@ -1,0 +1,111 @@
+# Cloudflare Integration Configuration
+
+# Cloudflare API credentials
+cloudflare:
+  email: "${CLOUDFLARE_EMAIL}"
+  api_key: "${CLOUDFLARE_API_KEY}"
+  zone_id: "${CLOUDFLARE_ZONE_ID}"
+  
+  # Domains to manage
+  domains:
+    - osint-platform.com
+    - www.osint-platform.com
+    - api.osint-platform.com
+    - traefik.osint-platform.com
+    - portainer.osint-platform.com
+    - grafana.osint-platform.com
+    - kibana.osint-platform.com
+
+# DNS records to create
+dns_records:
+  - name: "@"
+    type: A
+    content: "${SERVER_IP}"
+    proxied: true
+    ttl: 1
+    
+  - name: "www"
+    type: CNAME
+    content: "osint-platform.com"
+    proxied: true
+    ttl: 1
+    
+  - name: "api"
+    type: A
+    content: "${SERVER_IP}"
+    proxied: false
+    ttl: 1
+    
+  - name: "traefik"
+    type: A
+    content: "${SERVER_IP}"
+    proxied: true
+    ttl: 1
+    
+  - name: "portainer"
+    type: A
+    content: "${SERVER_IP}"
+    proxied: true
+    ttl: 1
+    
+  - name: "grafana"
+    type: A
+    content: "${SERVER_IP}"
+    proxied: true
+    ttl: 1
+    
+  - name: "kibana"
+    type: A
+    content: "${SERVER_IP}"
+    proxied: true
+    ttl: 1
+
+# SSL/TLS settings
+ssl:
+  universal_ssl: true
+  minimum_tls_version: "1.2"
+  strict_ssl: true
+
+# Firewall settings
+firewall:
+  security_level: "medium"
+  browser_check: true
+  challenge_ttl: 1800
+  
+  # Rate limiting rules
+  rate_limiting:
+    - threshold: 1000
+      period: 60
+      action: "challenge"
+      description: "General rate limiting"
+      
+    - threshold: 5000
+      period: 300
+      action: "ban"
+      description: "High rate limiting"
+
+# Page rules
+page_rules:
+  - target: "*.osint-platform.com/*"
+    actions:
+      - ssl: "flexible"
+      - always_use_https: true
+      - browser_cache_ttl: 14400
+      
+  - target: "osint-platform.com/api/*"
+    actions:
+      - security_level: "high"
+      - browser_check: true
+
+# Workers integration
+workers:
+  enabled: false
+  routes:
+    - pattern: "osint-platform.com/api/*"
+      script: "osint-api-worker"
+      
+# Analytics
+analytics:
+  enabled: true
+  log_push: true
+  log_push_frequency: "high"

@@ -1,0 +1,6 @@
+# OSINT Extension Python Requirements
+# This file lists all Python dependencies required for the OSINT extension
+
+crewai>=0.1.0
+langchain>=0.1.0
+neo4j>=5.0.0

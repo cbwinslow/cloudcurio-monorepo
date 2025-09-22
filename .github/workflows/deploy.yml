@@ -1,0 +1,53 @@
+name: Deploy OSINT Platform
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to staging
+        if: ${{ github.event.inputs.environment == 'staging' || github.event.release.prerelease == true }}
+        run: |
+          echo "Deploying OSINT Platform to staging environment..."
+          # Add deployment commands here
+          # This could include:
+          # 1. SSH to staging server
+          # 2. Pull latest Docker images
+          # 3. Run docker-compose up -d
+          # 4. Run any necessary migrations
+
+      - name: Deploy to production
+        if: ${{ github.event.inputs.environment == 'production' || (github.event.release.prerelease == false && github.event_name == 'release') }}
+        run: |
+          echo "Deploying OSINT Platform to production environment..."
+          # Add deployment commands here
+          # This could include:
+          # 1. SSH to production server
+          # 2. Pull latest Docker images
+          # 3. Run docker-compose up -d
+          # 4. Run any necessary migrations
+          # 5. Run health checks
+
+      - name: Notify on Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: always()

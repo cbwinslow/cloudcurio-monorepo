@@ -1,0 +1,34 @@
+---
+# Copy files task
+
+- name: Copy docker-compose.yml
+  copy:
+    src: "{{ playbook_dir }}/../../docker-compose.yml"
+    dest: "{{ deployment_path }}/docker-compose.yml"
+    mode: '0644'
+  when: not is_localhost
+
+- name: Copy configuration directories
+  synchronize:
+    src: "{{ playbook_dir }}/../../{{ item }}/"
+    dest: "{{ deployment_path }}/{{ item }}/"
+    recursive: yes
+  loop:
+    - config
+    - scripts
+    - traefik
+    - kong
+    - searxng
+    - prometheus
+    - fluentd
+  when: not is_localhost
+
+- name: Ensure scripts are executable
+  file:
+    path: "{{ deployment_path }}/scripts/{{ item }}"
+    mode: '0755'
+  loop:
+    - manage-platform.sh
+    - setup-platform.sh
+    - init-ollama.sh
+  when: not is_localhost

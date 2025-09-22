@@ -1,0 +1,62 @@
+# LocalAI Configuration
+
+# Server configuration
+host: 0.0.0.0
+port: 8080
+
+# Model configuration
+models_path: /models
+debug: false
+
+# CORS configuration
+cors: true
+cors_allow_origins:
+  - http://localhost:3000
+  - https://ui.osint.local
+  - https://localai.osint.local
+  - https://openwebui.osint.local
+
+# API configuration
+api_keys:
+  - sk-1234567890
+
+# Model loading configuration
+preload_models:
+  - name: gpt-4
+    backend: llama
+    file: ggml-gpt4.bin
+  - name: mistral
+    backend: llama
+    file: mistral-7b-instruct-v0.1.Q4_K_M.gguf
+
+# GPU configuration
+gpu_layers: 0
+threads: 4
+
+# Context configuration
+context_size: 512
+batch: 512
+
+# Cache configuration
+cache_type: disk
+cache_size: 100
+
+# Embeddings configuration
+embeddings: true
+embeddings_model: all-MiniLM-L6-v2
+
+# Audio configuration
+audio_transcription: true
+audio_transcription_model: whisper
+
+# Image generation configuration
+image_generation: true
+image_generation_model: stable-diffusion
+
+# Logging configuration
+log_level: info
+log_format: json
+
+# Security configuration
+rate_limit: 100
+rate_limit_window: 60

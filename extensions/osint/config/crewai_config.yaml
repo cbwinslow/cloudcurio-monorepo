@@ -1,0 +1,169 @@
+# OSINT Research Crew Configuration
+
+# This file defines CrewAI configurations for OSINT research operations
+# Each crew is specialized for different types of OSINT research tasks
+
+# Researcher Crew - Specializes in gathering information from open sources
+researcher_crew:
+  name: "OSINT Researcher"
+  description: "Gathers information from open sources about targets"
+  agents:
+    - name: "web_researcher"
+      role: "Web Research Specialist"
+      goal: "Find and collect publicly available information about targets from the internet"
+      backstory: "Expert researcher with skills in finding information through advanced search techniques and web scraping"
+      tools:
+        - "GoogleSearchTool"
+        - "WebScraperTool"
+        - "SocialMediaSearchTool"
+        - "WhoisLookupTool"
+        - "DnsLookupTool"
+      allow_delegation: false
+      verbose: true
+    
+    - name: "social_media_analyst"
+      role: "Social Media Analyst"
+      goal: "Analyze social media profiles and extract relevant information"
+      backstory: "Specialist in social media analysis with expertise in identifying patterns and extracting intelligence from social platforms"
+      tools:
+        - "TwitterScraperTool"
+        - "LinkedInScraperTool"
+        - "FacebookScraperTool"
+        - "InstagramScraperTool"
+      allow_delegation: false
+      verbose: true
+    
+    - name: "domain_investigator"
+      role: "Domain Investigation Specialist"
+      goal: "Investigate domain registrations and hosting information"
+      backstory: "Expert in domain investigation with deep knowledge of DNS, WHOIS, and hosting infrastructure"
+      tools:
+        - "WhoisLookupTool"
+        - "DnsLookupTool"
+        - "ReverseIpLookupTool"
+        - "SubdomainFinderTool"
+      allow_delegation: false
+      verbose: true
+
+# Analysis Crew - Specializes in analyzing and linking collected information
+analysis_crew:
+  name: "OSINT Analyst"
+  description: "Analyzes and links collected information to build comprehensive profiles"
+  agents:
+    - name: "data_analyst"
+      role: "Data Analysis Specialist"
+      goal: "Analyze collected data to identify patterns and connections"
+      backstory: "Expert data analyst skilled in identifying patterns and connections in large datasets"
+      tools:
+        - "DataAnalysisTool"
+        - "PatternRecognitionTool"
+        - "LinkAnalysisTool"
+      allow_delegation: true
+      verbose: true
+    
+    - name: "link_builder"
+      role: "Connection Builder"
+      goal: "Establish connections between different pieces of information"
+      backstory: "Specialist in building connections between disparate pieces of information to create a comprehensive picture"
+      tools:
+        - "EntityLinkingTool"
+        - "RelationshipMapperTool"
+        - "GraphBuilderTool"
+      allow_delegation: true
+      verbose: true
+    
+    - name: "verification_specialist"
+      role: "Information Verification Specialist"
+      goal: "Verify the accuracy and reliability of collected information"
+      backstory: "Expert in verifying information accuracy with skills in cross-referencing and fact-checking"
+      tools:
+        - "FactCheckingTool"
+        - "SourceVerificationTool"
+        - "CrossReferenceTool"
+      allow_delegation: false
+      verbose: true
+
+# Reporting Crew - Specializes in creating comprehensive reports
+reporting_crew:
+  name: "OSINT Reporter"
+  description: "Creates comprehensive reports and visualizations from analyzed information"
+  agents:
+    - name: "report_writer"
+      role: "Technical Report Writer"
+      goal: "Create comprehensive technical reports from analyzed information"
+      backstory: "Expert technical writer skilled in presenting complex information clearly and concisely"
+      tools:
+        - "ReportGeneratorTool"
+        - "TechnicalWritingTool"
+        - "FormattingTool"
+      allow_delegation: false
+      verbose: true
+    
+    - name: "visualization_specialist"
+      role: "Data Visualization Specialist"
+      goal: "Create visual representations of data and connections"
+      backstory: "Specialist in data visualization with expertise in creating meaningful graphs and charts"
+      tools:
+        - "GraphVisualizationTool"
+        - "ChartGeneratorTool"
+        - "KnowledgeGraphRendererTool"
+      allow_delegation: false
+      verbose: true
+    
+    - name: "presentation_creator"
+      role: "Presentation Creator"
+      goal: "Create presentations suitable for different audiences"
+      backstory: "Expert in creating presentations tailored to different audiences and purposes"
+      tools:
+        - "PresentationGeneratorTool"
+        - "AudienceAdaptationTool"
+        - "VisualDesignTool"
+      allow_delegation: false
+      verbose: true
+
+# Tasks configuration
+tasks:
+  - name: "initial_research"
+    description: "Conduct initial research on target"
+    expected_output: "List of initial findings and sources"
+    agent: "web_researcher"
+  
+  - name: "social_media_analysis"
+    description: "Analyze social media presence of target"
+    expected_output: "Social media profiles and related information"
+    agent: "social_media_analyst"
+  
+  - name: "domain_investigation"
+    description: "Investigate domain and hosting information"
+    expected_output: "Domain registration and hosting details"
+    agent: "domain_investigator"
+  
+  - name: "data_analysis"
+    description: "Analyze all collected information"
+    expected_output: "Analyzed data with identified patterns"
+    agent: "data_analyst"
+  
+  - name: "link_building"
+    description: "Establish connections between information pieces"
+    expected_output: "Mapped connections and relationships"
+    agent: "link_builder"
+  
+  - name: "verification"
+    description: "Verify accuracy of information"
+    expected_output: "Verified information with confidence levels"
+    agent: "verification_specialist"
+  
+  - name: "report_generation"
+    description: "Generate comprehensive report"
+    expected_output: "Complete technical report with findings"
+    agent: "report_writer"
+  
+  - name: "visualization"
+    description: "Create visual representations"
+    expected_output: "Graphs, charts, and knowledge graph visualizations"
+    agent: "visualization_specialist"
+  
+  - name: "presentation_creation"
+    description: "Create presentation materials"
+    expected_output: "Presentation suitable for stakeholders"
+    agent: "presentation_creator"

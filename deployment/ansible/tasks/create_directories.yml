@@ -1,0 +1,42 @@
+---
+# Create directories task
+
+- name: Create main directory structure
+  file:
+    path: "{{ deployment_path }}/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - data/supabase
+    - data/neo4j/neo4j
+    - data/neo4j/plugins
+    - data/bitwarden
+    - data/n8n
+    - data/localai/models
+    - data/openwebui
+    - data/localrecall
+    - data/flowise
+    - data/rabbitmq
+    - data/prometheus
+    - data/grafana
+    - data/netdata
+    - data/sentry
+    - data/portainer
+    - data/ollama
+    - traefik/letsencrypt
+    - kong
+    - searxng
+    - prometheus
+    - fluentd/conf
+    - backups
+
+- name: Create Ansible roles directory
+  file:
+    path: "{{ deployment_path }}/deployment/ansible/roles/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - osint-platform/tasks
+    - osint-platform/vars
+    - osint-platform/templates
+    - osint-platform/files

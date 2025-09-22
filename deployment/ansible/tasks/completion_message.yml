@@ -1,0 +1,32 @@
+---
+# Completion message task
+
+- name: Display completion message
+  debug:
+    msg: |
+      ==========================================
+      OSINT Platform Deployment Completed!
+      ==========================================
+      
+      Installation path: {{ deployment_path }}
+      
+      Next steps:
+      1. Wait for Ollama to initialize (check logs)
+      2. Access the platform at http://localhost (or remote host IP)
+      3. Traefik Dashboard: http://localhost:8080
+      4. Portainer: http://localhost:9001
+      
+      Default credentials:
+      - BeEF: beef / SecurePassword123!
+      - Grafana: admin / grafana123
+      - Neo4j: neo4j / neo4j123
+      - RabbitMQ: rabbitmq / rabbitmq123
+      - Bitwarden: Available at http://localhost:8083
+      
+      Management commands:
+      - Start: ./scripts/manage-platform.sh start
+      - Stop: ./scripts/manage-platform.sh stop
+      - View logs: ./scripts/manage-platform.sh logs
+      - Backup: ./scripts/manage-platform.sh backup
+      - Restore: ./scripts/manage-platform.sh restore <backup_file>
+      ==========================================

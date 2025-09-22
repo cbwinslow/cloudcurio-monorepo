@@ -1,0 +1,459 @@
+version: '3.8'
+
+services:
+  # Reverse Proxy
+  traefik:
+    image: traefik:v2.10
+    container_name: osint-traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=admin@osint.local"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/letsencrypt:/letsencrypt
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.osint.local`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+  # API Gateway
+  kong:
+    image: kong:3.4
+    container_name: osint-kong
+    environment:
+      KONG_DATABASE: off
+      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001, 0.0.0.0:8444 ssl
+    volumes:
+      - ./kong/kong.yml:/usr/local/kong/declarative/kong.yml
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "8001:8001"
+      - "8444:8444"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kong.rule=Host(`kong.osint.local`)"
+      - "traefik.http.services.kong.loadbalancer.server.port=8000"
+
+  # Database Layer
+  supabase-db:
+    image: supabase/postgres:15.1.0.147
+    container_name: osint-supabase-db
+    environment:
+      POSTGRES_DB: supabase
+      POSTGRES_USER: supabase
+      POSTGRES_PASSWORD: supabase123
+    volumes:
+      - ./data/supabase:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    labels:
+      - "traefik.enable=false"
+
+  neo4j:
+    image: neo4j:5.12
+    container_name: osint-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/neo4j123
+    volumes:
+      - ./data/neo4j:/data
+      - ./neo4j/plugins:/plugins
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.neo4j.rule=Host(`neo4j.osint.local`)"
+      - "traefik.http.services.neo4j.loadbalancer.server.port=7474"
+
+  # Secrets Management
+  bitwarden:
+    image: bitwarden/self-host:beta
+    container_name: osint-bitwarden
+    environment:
+      BW_DOMAIN: bitwarden.osint.local
+      BW_PORT_HTTP: 8083
+    volumes:
+      - ./data/bitwarden:/etc/bitwarden
+    ports:
+      - "8083:8083"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bitwarden.rule=Host(`bitwarden.osint.local`)"
+      - "traefik.http.services.bitwarden.loadbalancer.server.port=8083"
+
+  # Data Collection Layer
+  searxng:
+    image: searxng/searxng:latest
+    container_name: osint-searxng
+    volumes:
+      - ./searxng:/etc/searxng:ro
+    ports:
+      - "8084:8080"
+    environment:
+      - SEARXNG_BASE_URL=https://searxng.osint.local
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.searxng.rule=Host(`searxng.osint.local`)"
+      - "traefik.http.services.searxng.loadbalancer.server.port=8080"
+
+  beef:
+    build: 
+      context: .
+      dockerfile: Dockerfile.beef
+    container_name: osint-beef
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./beef-config:/opt/beef/config
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.beef.rule=Host(`beef.osint.local`)"
+      - "traefik.http.services.beef.loadbalancer.server.port=3000"
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: osint-n8n
+    environment:
+      - N8N_PORT=5678
+      - N8N_HOST=n8n.osint.local
+      - NODE_ENV=production
+    volumes:
+      - ./data/n8n:/home/node/.n8n
+    ports:
+      - "5678:5678"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.osint.local`)"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+
+  # Processing & Analysis Layer
+  localai:
+    image: quay.io/go-skynet/local-ai:latest
+    container_name: osint-localai
+    environment:
+      - MODELS_PATH=/models
+      - DEBUG=true
+    volumes:
+      - ./data/localai/models:/models
+    ports:
+      - "8081:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.localai.rule=Host(`localai.osint.local`)"
+      - "traefik.http.services.localai.loadbalancer.server.port=8080"
+
+  # Ollama for LLM inference
+  ollama:
+    image: ollama/ollama:latest
+    container_name: osint-ollama
+    volumes:
+      - ./data/ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama.rule=Host(`ollama.osint.local`)"
+      - "traefik.http.services.ollama.loadbalancer.server.port=11434"
+
+  openwebui:
+    image: ghcr.io/openwebui/openwebui:main
+    container_name: osint-openwebui
+    environment:
+      - OPENAI_API_KEY=sk-1234567890
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ./data/openwebui:/app/backend/data
+    ports:
+      - "3000:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.openwebui.rule=Host(`openwebui.osint.local`)"
+      - "traefik.http.services.openwebui.loadbalancer.server.port=8080"
+
+  localrecall:
+    image: ghcr.io/mudler/localrecall:latest
+    container_name: osint-localrecall
+    environment:
+      - LISTENING_ADDRESS=:8082
+    volumes:
+      - ./data/localrecall:/data
+    ports:
+      - "8082:8082"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.localrecall.rule=Host(`localrecall.osint.local`)"
+      - "traefik.http.services.localrecall.loadbalancer.server.port=8082"
+
+  flowise:
+    image: flowiseai/flowise:latest
+    container_name: osint-flowise
+    environment:
+      - PORT=3002
+    volumes:
+      - ./data/flowise:/root/.flowise
+    ports:
+      - "3003:3002"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.flowise.rule=Host(`flowise.osint.local`)"
+      - "traefik.http.services.flowise.loadbalancer.server.port=3002"
+
+  mcp-server:
+    image: ghcr.io/modelcontextprotocol/server:latest
+    container_name: osint-mcp-server
+    ports:
+      - "3004:3004"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp.rule=Host(`mcp.osint.local`)"
+      - "traefik.http.services.mcp.loadbalancer.server.port=3004"
+
+  # Messaging Layer
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: osint-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq123
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.osint.local`)"
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
+
+  # Monitoring & Logging Layer
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: osint-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/prometheus
+    ports:
+      - "9090:9090"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.osint.local`)"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: osint-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=grafana123
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.osint.local`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  netdata:
+    image: netdata/netdata:latest
+    container_name: osint-netdata
+    pid: host
+    network_mode: host
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - ./data/netdata:/etc/netdata
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.netdata.rule=Host(`netdata.osint.local`)"
+      - "traefik.http.services.netdata.loadbalancer.server.port=19999"
+
+  loki:
+    image: grafana/loki:latest
+    container_name: osint-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.loki.rule=Host(`loki.osint.local`)"
+      - "traefik.http.services.loki.loadbalancer.server.port=3100"
+
+  fluentd:
+    image: fluent/fluentd:latest
+    container_name: osint-fluentd
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    labels:
+      - "traefik.enable=false"
+
+  sentry:
+    image: sentry:latest
+    container_name: osint-sentry
+    environment:
+      SENTRY_SECRET_KEY: 'secret'
+      SENTRY_POSTGRES_HOST: supabase-db
+      SENTRY_DB_USER: supabase
+      SENTRY_DB_PASSWORD: supabase123
+      SENTRY_REDIS_HOST: redis
+    ports:
+      - "9000:9000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sentry.rule=Host(`sentry.osint.local`)"
+      - "traefik.http.services.sentry.loadbalancer.server.port=9000"
+
+  redis:
+    image: redis:latest
+    container_name: osint-redis
+    ports:
+      - "6379:6379"
+    labels:
+      - "traefik.enable=false"
+
+  # Additional OSINT Tools
+  archon:
+    image: ghcr.io/archon-sec/archon:latest
+    container_name: osint-archon
+    ports:
+      - "8085:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archon.rule=Host(`archon.osint.local`)"
+      - "traefik.http.services.archon.loadbalancer.server.port=80"
+
+  # Web Interface
+  web-interface:
+    build:
+      context: ./web-interface
+      dockerfile: Dockerfile
+    container_name: osint-web-interface
+    ports:
+      - "3005:3000"
+    volumes:
+      - ./web-interface:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webinterface.rule=Host(`ui.osint.local`)"
+      - "traefik.http.services.webinterface.loadbalancer.server.port=3000"
+
+  # AI Agents
+  ai-agents:
+    build:
+      context: ./ai-agents
+      dockerfile: Dockerfile
+    container_name: osint-ai-agents
+    volumes:
+      - ./ai-agents:/app
+    environment:
+      - PYTHONPATH=/app
+    labels:
+      - "traefik.enable=false"
+
+  # Portainer for container management
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: osint-portainer
+    ports:
+      - "9001:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/portainer:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.osint.local`)"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
+  # Podman service
+  podman:
+    image: docker.io/containers/podman:latest
+    container_name: osint-podman
+    privileged: true
+    volumes:
+      - /run/podman/podman.sock:/var/run/docker.sock:Z
+      - ./data/podman:/var/lib/containers:Z
+    ports:
+      - "9002:9000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.podman.rule=Host(`podman.osint.local`)"
+      - "traefik.http.services.podman.loadbalancer.server.port=9000
+
+  # Kali Linux OSINT Tools
+  kali-osint:
+    build:
+      context: ./deployment/docker/kali-osint
+      dockerfile: Dockerfile
+    container_name: osint-kali
+    privileged: true
+    volumes:
+      - ./data/kali:/opt/osint/data
+    ports:
+      - "8086:80"
+      - "8443:443"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kali.rule=Host(`kali.osint.local`)"
+      - "traefik.http.services.kali.loadbalancer.server.port=80"
+
+  # BlackArch Linux OSINT Tools
+  blackarch-osint:
+    build:
+      context: ./deployment/docker/blackarch-osint
+      dockerfile: Dockerfile
+    container_name: osint-blackarch
+    privileged: true
+    volumes:
+      - ./data/blackarch:/opt/osint/data
+    ports:
+      - "8087:80"
+      - "8444:443"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.blackarch.rule=Host(`blackarch.osint.local`)"
+      - "traefik.http.services.blackarch.loadbalancer.server.port=80"
+
+  # BlackArch MCP Server
+  blackarch-mcp:
+    build:
+      context: ./deployment/docker/mcp-blackarch
+      dockerfile: Dockerfile
+    container_name: osint-blackarch-mcp
+    ports:
+      - "3006:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.blackarchmcp.rule=Host(`blackarch-mcp.osint.local`)"
+      - "traefik.http.services.blackarchmcp.loadbalancer.server.port=3000
+
+networks:
+  default:
+    name: osint-network

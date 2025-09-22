@@ -1,0 +1,130 @@
+{
+  "users": [
+    {
+      "name": "rabbitmq",
+      "password": "rabbitmq123",
+      "tags": "administrator"
+    },
+    {
+      "name": "osint",
+      "password": "osint123",
+      "tags": "management"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    },
+    {
+      "name": "osint"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "rabbitmq",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "osint",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "rabbitmq",
+      "vhost": "osint",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "osint",
+      "vhost": "osint",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "parameters": [],
+  "policies": [
+    {
+      "vhost": "osint",
+      "name": "ha-all",
+      "pattern": ".*",
+      "definition": {
+        "ha-mode": "all",
+        "ha-sync-mode": "automatic"
+      }
+    }
+  ],
+  "queues": [
+    {
+      "name": "osint.data.collection",
+      "vhost": "osint",
+      "durable": true
+    },
+    {
+      "name": "osint.data.processing",
+      "vhost": "osint",
+      "durable": true
+    },
+    {
+      "name": "osint.data.analysis",
+      "vhost": "osint",
+      "durable": true
+    },
+    {
+      "name": "osint.notifications",
+      "vhost": "osint",
+      "durable": true
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "osint.data",
+      "vhost": "osint",
+      "type": "topic",
+      "durable": true
+    },
+    {
+      "name": "osint.notifications",
+      "vhost": "osint",
+      "type": "fanout",
+      "durable": true
+    }
+  ],
+  "bindings": [
+    {
+      "source": "osint.data",
+      "vhost": "osint",
+      "destination": "osint.data.collection",
+      "destination_type": "queue",
+      "routing_key": "collection.*"
+    },
+    {
+      "source": "osint.data",
+      "vhost": "osint",
+      "destination": "osint.data.processing",
+      "destination_type": "queue",
+      "routing_key": "processing.*"
+    },
+    {
+      "source": "osint.data",
+      "vhost": "osint",
+      "destination": "osint.data.analysis",
+      "destination_type": "queue",
+      "routing_key": "analysis.*"
+    },
+    {
+      "source": "osint.notifications",
+      "vhost": "osint",
+      "destination": "osint.notifications",
+      "destination_type": "queue",
+      "routing_key": "#"
+    }
+  ]
+}

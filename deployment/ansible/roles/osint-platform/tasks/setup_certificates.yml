@@ -1,0 +1,14 @@
+---
+# Setup certificates task
+
+- name: Create Traefik letsencrypt directory
+  file:
+    path: "{{ deployment_path }}/traefik/letsencrypt"
+    state: directory
+    mode: '0755'
+
+- name: Create empty acme.json file
+  copy:
+    content: ""
+    dest: "{{ deployment_path }}/traefik/letsencrypt/acme.json"
+    mode: '0600'

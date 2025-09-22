@@ -1,0 +1,50 @@
+---
+# Main variables for OSINT Platform deployment
+
+# Platform configuration
+osint_platform_path: /opt/osint-platform
+docker_compose_file: docker-compose.yml
+
+# Docker images to pull
+docker_images:
+  - traefik:v2.10
+  - kong:3.4
+  - supabase/postgres:15.1.0.147
+  - neo4j:5.12
+  - bitwarden/self-host:beta
+  - searxng/searxng:latest
+  - n8nio/n8n:latest
+  - quay.io/go-skynet/local-ai:latest
+  - ollama/ollama:latest
+  - ghcr.io/openwebui/openwebui:main
+  - ghcr.io/mudler/localrecall:latest
+  - flowiseai/flowise:latest
+  - ghcr.io/modelcontextprotocol/server:latest
+  - rabbitmq:3-management
+  - prom/prometheus:latest
+  - grafana/grafana-enterprise
+  - netdata/netdata:latest
+  - grafana/loki:latest
+  - fluent/fluentd:latest
+  - sentry:latest
+  - redis:latest
+  - ghcr.io/archon-sec/archon:latest
+  - portainer/portainer-ce:latest
+
+# Database configuration
+supabase_db_name: supabase
+supabase_db_user: supabase
+supabase_db_password: supabase123
+
+neo4j_user: neo4j
+neo4j_password: neo4j123
+
+# Service ports
+traefik_http_port: 80
+traefik_https_port: 443
+traefik_dashboard_port: 8080
+
+portainer_port: 9001
+
+# Feature flags
+initialize_databases_enabled: true

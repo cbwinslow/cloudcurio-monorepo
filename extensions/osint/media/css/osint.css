@@ -1,0 +1,71 @@
+/* OSINT Extension Styles */
+
+.osint-dashboard {
+  padding: 20px;
+}
+
+.osint-panel {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  padding: 15px;
+}
+
+.osint-panel h4 {
+  margin-top: 0;
+  color: #333;
+}
+
+.graph-container {
+  width: 100%;
+  height: 400px;
+  border: 1px solid #ccc;
+  background: #fff;
+}
+
+.targets-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.targets-table th,
+.targets-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.targets-table th {
+  background-color: #f0f0f0;
+}
+
+.button.small {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.recent-activity {
+  list-style-type: none;
+  padding: 0;
+}
+
+.recent-activity li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.recent-activity li:last-child {
+  border-bottom: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .osint-dashboard {
+    padding: 10px;
+  }
+  
+  .graph-container {
+    height: 300px;
+  }
+}

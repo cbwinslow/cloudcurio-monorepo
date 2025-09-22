@@ -1,0 +1,44 @@
+# Supabase Configuration
+
+# Database configuration
+db:
+  host: localhost
+  port: 5432
+  database: supabase
+  user: supabase
+  password: supabase123
+  pool_size: 20
+
+# API configuration
+api:
+  port: 8000
+  host: 0.0.0.0
+  jwt_secret: "super-secret-jwt-token-with-at-least-32-characters-long"
+  anon_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24ifQ.625_WdcF3KHqz5amU0x2X5WWHP-OEs_4qj0ssLN3GTE"
+  service_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSJ9.vI9obAHOGyVVKa3pD--kJlyxp-Z2zV9UUMAhKpNLAcU"
+
+# Auth configuration
+auth:
+  site_url: http://localhost:3000
+  jwt_expiry: 3600
+  enable_signup: true
+  email:
+    enable_signup: true
+    double_confirm_changes: true
+    enable_confirmations: true
+
+# Storage configuration
+storage:
+  file_size_limit: 52428800
+  s3_region: us-east-1
+  s3_bucket: supabase-storage
+
+# Realtime configuration
+realtime:
+  enabled: true
+  ip_version: IPv4
+
+# Dashboard configuration
+dashboard:
+  enabled: true
+  port: 8080

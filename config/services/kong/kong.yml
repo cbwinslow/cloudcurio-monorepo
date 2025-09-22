@@ -1,0 +1,63 @@
+_format_version: "1.1"
+services:
+  - name: beef-service
+    url: http://beef:3000
+    routes:
+      - name: beef-route
+        paths:
+          - /beef
+          
+  - name: searxng-service
+    url: http://searxng:8080
+    routes:
+      - name: searxng-route
+        paths:
+          - /searxng
+          
+  - name: localai-service
+    url: http://localai:8080
+    routes:
+      - name: localai-route
+        paths:
+          - /localai
+          
+  - name: ollama-service
+    url: http://ollama:11434
+    routes:
+      - name: ollama-route
+        paths:
+          - /ollama
+          
+  - name: openwebui-service
+    url: http://openwebui:8080
+    routes:
+      - name: openwebui-route
+        paths:
+          - /openwebui
+
+routes:
+  - name: api-route
+    paths:
+      - /api
+    service: beef-service
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Content-Type
+        - Origin
+        - Authorization
+      exposed_headers:
+        - X-Auth-Token
+      credentials: true
+      max_age: 86400

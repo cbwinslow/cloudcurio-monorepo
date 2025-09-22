@@ -1,0 +1,49 @@
+---
+# OSINT Platform Deployment Playbook
+
+- name: Deploy OSINT Platform
+  hosts: osint_platform
+  become: yes
+  vars_files:
+    - vars/main.yml
+
+  pre_tasks:
+    - name: Check if running on localhost
+      set_fact:
+        is_localhost: "{{ ansible_connection == 'local' }}"
+
+    - name: Set deployment path for localhost
+      set_fact:
+        deployment_path: "{{ playbook_dir }}/../../"
+      when: is_localhost
+
+    - name: Set deployment path for remote hosts
+      set_fact:
+        deployment_path: "{{ osint_platform_path }}"
+      when: not is_localhost
+
+  tasks:
+    - name: Check prerequisites
+      include_tasks: tasks/check_prerequisites.yml
+
+    - name: Create directory structure
+      include_tasks: tasks/create_directories.yml
+
+    - name: Copy configuration files
+      include_tasks: tasks/copy_files.yml
+
+    - name: Set up Traefik certificates
+      include_tasks: tasks/setup_certificates.yml
+
+    - name: Pull Docker images
+      include_tasks: tasks/pull_images.yml
+
+    - name: Initialize databases
+      include_tasks: tasks/initialize_databases.yml
+      when: initialize_databases_enabled
+
+    - name: Start OSINT Platform
+      include_tasks: tasks/start_platform.yml
+
+    - name: Show completion message
+      include_tasks: tasks/completion_message.yml

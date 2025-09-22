@@ -1,0 +1,39 @@
+# BeEF OSINT Extension Configuration
+#
+# This extension provides OSINT (Open Source Intelligence) gathering capabilities
+# for people, IP addresses, domains, and email addresses with knowledge graph linking.
+
+beef:
+  extension:
+    osint:
+      name: 'OSINT Analysis'
+      full_name: 'Open Source Intelligence Analysis Framework'
+      description: 'OSINT gathering and analysis with knowledge graph linking'
+      author: 'BeEF Team'
+      version: '0.1.0'
+      
+      # Enable the extension
+      enable: true
+      
+      # Database configuration for Neo4j
+      neo4j:
+        host: 'localhost'
+        port: 7687
+        username: 'neo4j'
+        password: 'password'
+        database: 'osint'
+      
+      # Ollama configuration
+      ollama:
+        host: 'localhost'
+        port: 11434
+        model: 'dolphin-llama3'
+      
+      # CrewAI configuration
+      crewai:
+        enabled: true
+        agents:
+          - researcher
+          - analyst
+          - reporter
+          - linker

@@ -1,0 +1,17 @@
+---
+# Pull Docker images task
+
+- name: Pull Docker images
+  docker_image:
+    name: "{{ item }}"
+    source: pull
+  loop: "{{ docker_images }}"
+  register: pull_result
+  ignore_errors: yes
+
+- name: Display pull results
+  debug:
+    msg: "Pulled {{ item.item }}: {{ 'Success' if item is successful else 'Failed' }}"
+  loop: "{{ pull_result.results }}"
+  loop_control:
+    label: "{{ item.item }}"

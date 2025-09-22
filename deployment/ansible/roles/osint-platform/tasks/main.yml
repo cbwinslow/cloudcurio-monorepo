@@ -1,0 +1,24 @@
+---
+# tasks file for osint-platform
+
+- name: Check prerequisites
+  include_tasks: check_prerequisites.yml
+
+- name: Create directory structure
+  include_tasks: create_directories.yml
+
+- name: Copy configuration files
+  include_tasks: copy_files.yml
+
+- name: Set up Traefik certificates
+  include_tasks: setup_certificates.yml
+
+- name: Pull Docker images
+  include_tasks: pull_images.yml
+
+- name: Initialize databases
+  include_tasks: initialize_databases.yml
+  when: initialize_databases_enabled
+
+- name: Start OSINT Platform
+  include_tasks: start_platform.yml

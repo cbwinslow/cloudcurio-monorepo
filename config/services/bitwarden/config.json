@@ -1,0 +1,54 @@
+# Bitwarden Configuration
+
+# Server configuration
+domain: bitwarden.osint.local
+port: 8083
+
+# Database configuration
+database:
+  url: postgresql://bitwarden:bitwarden123@supabase-db:5432/bitwarden
+  max_connections: 20
+
+# Mail configuration
+smtp:
+  host: smtp.gmail.com
+  port: 587
+  ssl: true
+  from: bitwarden@osint.local
+  username: bitwarden@osint.local
+  password: ${BITWARDEN_SMTP_PASSWORD}
+
+# Security configuration
+security:
+  hibp_api_key: ${BITWARDEN_HIBP_API_KEY}
+  disable_user_registration: false
+  password_iterations: 100000
+
+# Storage configuration
+storage:
+  path: /etc/bitwarden/data
+  attachments_path: /etc/bitwarden/attachments
+  sends_path: /etc/bitwarden/sends
+  icons_path: /etc/bitwarden/icons
+  tmp_path: /etc/bitwarden/tmp
+
+# Logging configuration
+logging:
+  level: INFO
+  file: /var/log/bitwarden.log
+  max_size: 10MB
+  max_files: 5
+
+# Cache configuration
+cache:
+  type: redis
+  redis_url: redis://redis:6379
+  ttl: 3600
+
+# API configuration
+api:
+  enabled: true
+  cors_origins:
+    - http://localhost:3000
+    - https://ui.osint.local
+    - https://bitwarden.osint.local

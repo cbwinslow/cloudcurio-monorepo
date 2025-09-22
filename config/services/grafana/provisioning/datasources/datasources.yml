@@ -1,0 +1,48 @@
+# Grafana Data Source Provisioning
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    jsonData:
+      timeInterval: "15s"
+    version: 1
+    editable: true
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      maxLines: 1000
+    version: 1
+    editable: true
+
+  - name: Neo4j
+    type: neo4j
+    access: proxy
+    url: http://neo4j:7474
+    jsonData:
+      version: "5"
+    version: 1
+    editable: true
+
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: supabase-db:5432
+    database: supabase
+    user: supabase
+    secureJsonData:
+      password: "supabase123"
+    jsonData:
+      sslmode: "disable"
+      maxOpenConns: 10
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+    version: 1
+    editable: true

@@ -1,0 +1,49 @@
+FROM ruby:3.1
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    build-essential \
+    openssl \
+    libreadline-dev \
+    zlib1g \
+    zlib1g-dev \
+    libssl-dev \
+    libyaml-dev \
+    libsqlite3-dev \
+    sqlite3 \
+    libxml2-dev \
+    libxslt1-dev \
+    autoconf \
+    libc6-dev \
+    libncurses5-dev \
+    automake \
+    libtool \
+    bison \
+    nodejs \
+    libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create beef user
+RUN useradd -m -s /bin/bash beef
+
+# Set working directory
+WORKDIR /opt/beef
+
+# Clone BeEF repository
+RUN git clone https://github.com/beefproject/beef.git .
+
+# Install gems
+RUN gem install bundler
+RUN bundle config set --local path 'vendor/bundle'
+RUN bundle install
+
+# Expose port
+EXPOSE 3000
+
+# Copy configuration
+COPY ./beef-config /opt/beef/config
+
+# Start BeEF
+CMD ["./beef"]

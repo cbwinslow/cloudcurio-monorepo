@@ -1,0 +1,207 @@
+# GitLab Integration Configuration
+
+# GitLab instance configuration
+gitlab:
+  # GitLab instance URL
+  url: "https://gitlab.com"
+  
+  # API configuration
+  api:
+    version: "v4"
+    endpoint: "/api/v4"
+    
+  # Authentication
+  auth:
+    # Personal access token with API scope
+    personal_access_token: "${GITLAB_PERSONAL_ACCESS_TOKEN}"
+    
+    # OAuth2 configuration (if using OAuth)
+    oauth:
+      client_id: "${GITLAB_OAUTH_CLIENT_ID}"
+      client_secret: "${GITLAB_OAUTH_CLIENT_SECRET}"
+      redirect_uri: "http://localhost:3005/auth/gitlab/callback"
+
+# GitLab CI/CD integration
+ci_cd:
+  # Enable GitLab CI/CD integration
+  enabled: true
+  
+  # Default runner configuration
+  runners:
+    - name: "osint-platform-runner"
+      description: "Runner for OSINT Platform CI/CD"
+      tags: ["osint", "docker", "platform"]
+      active: true
+      locked: false
+      run_untagged: true
+      maximum_timeout: 3600
+      
+  # Pipeline configuration
+  pipelines:
+    # Default pipeline for OSINT platform
+    default:
+      stages:
+        - build
+        - test
+        - deploy
+        
+      # Build stage
+      build:
+        script:
+          - echo "Building OSINT Platform..."
+          - docker-compose build
+        artifacts:
+          paths:
+            - docker-compose.yml
+            - deployment/
+            
+      # Test stage
+      test:
+        script:
+          - echo "Running tests..."
+          - docker-compose run --rm ai-agents python -m pytest tests/
+          - docker-compose run --rm web-interface npm test
+        dependencies:
+          - build
+          
+      # Deploy stage
+      deploy:
+        script:
+          - echo "Deploying OSINT Platform..."
+          - ./scripts/manage-platform.sh update
+        environment:
+          name: production
+        only:
+          - main
+        dependencies:
+          - test
+
+# GitLab Registry integration
+registry:
+  enabled: true
+  url: "registry.gitlab.com"
+  
+  # Images to push to GitLab Registry
+  images:
+    - name: "osint-platform/beef"
+      path: "registry.gitlab.com/osint-platform/beef"
+      
+    - name: "osint-platform/web-interface"
+      path: "registry.gitlab.com/osint-platform/web-interface"
+      
+    - name: "osint-platform/ai-agents"
+      path: "registry.gitlab.com/osint-platform/ai-agents"
+      
+    - name: "osint-platform/plugins"
+      path: "registry.gitlab.com/osint-platform/plugins"
+
+# GitLab Issues integration
+issues:
+  enabled: true
+  
+  # Default labels for issues
+  labels:
+    - name: "bug"
+      color: "#e11d21"
+      description: "Something isn't working"
+      
+    - name: "enhancement"
+      color: "#84b6eb"
+      description: "New feature or request"
+      
+    - name: "documentation"
+      color: "#c2e0c6"
+      description: "Improvements or additions to documentation"
+      
+    - name: "security"
+      color: "#e11d21"
+      description: "Security related issues"
+      
+    - name: "osint"
+      color: "#5319e7"
+      description: "OSINT related issues"
+      
+    - name: "plugin"
+      color: "#fbca04"
+      description: "Plugin related issues"
+      
+    - name: "ai"
+      color: "#5319e7"
+      description: "AI related issues"
+
+# GitLab Merge Requests integration
+merge_requests:
+  enabled: true
+  
+  # Default merge request template
+  templates:
+    - name: "feature"
+      title: "feat: "
+      description: |
+        ## Description
+        Brief description of the feature
+        
+        ## Changes
+        - List of changes
+        
+        ## Testing
+        How was this tested?
+        
+        ## Related Issues
+        Fixes #issue-number
+        
+    - name: "bugfix"
+      title: "fix: "
+      description: |
+        ## Description
+        Brief description of the bug
+        
+        ## Root Cause
+        Explanation of what caused the bug
+        
+        ## Solution
+        Explanation of how the bug was fixed
+        
+        ## Testing
+        How was this tested?
+        
+        ## Related Issues
+        Fixes #issue-number
+
+# GitLab Webhooks integration
+webhooks:
+  enabled: true
+  
+  # Webhook URLs
+  urls:
+    - url: "http://localhost:3005/webhook/gitlab"
+      push_events: true
+      merge_requests_events: true
+      issues_events: true
+      confidential_issues_events: true
+      tag_push_events: true
+      note_events: true
+      job_events: true
+      pipeline_events: true
+      wiki_page_events: true
+      deployment_events: true
+      releases_events: true
+      enable_ssl_verification: true
+
+# GitLab Authentication for Web Interface
+authentication:
+  enabled: true
+  
+  # OAuth2 configuration for web interface
+  oauth2:
+    enabled: true
+    client_id: "${GITLAB_OAUTH_CLIENT_ID}"
+    client_secret: "${GITLAB_OAUTH_CLIENT_SECRET}"
+    redirect_uri: "http://ui.osint.local/auth/gitlab/callback"
+    
+    # Scopes to request
+    scopes:
+      - read_user
+      - read_api
+      - read_repository
+      - write_repository

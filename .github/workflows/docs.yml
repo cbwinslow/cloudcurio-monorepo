@@ -1,0 +1,44 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install mkdocs mkdocs-material
+
+      - name: Generate API documentation
+        run: |
+          # Generate API documentation from code
+          echo "Generating API documentation..."
+
+      - name: Generate user documentation
+        run: |
+          # Generate user documentation from markdown files
+          echo "Generating user documentation..."
+
+      - name: Build documentation site
+        run: |
+          # Build the documentation site
+          mkdocs build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          keep_files: true

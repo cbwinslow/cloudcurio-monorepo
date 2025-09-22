@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OSINT Executive Summary Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1, h2, h3 { color: #333; }
+    .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+    .section { margin-bottom: 30px; }
+    .findings { background: #f9f9f9; padding: 15px; border-left: 4px solid #007acc; }
+    .recommendations { background: #f0f8ff; padding: 15px; border-left: 4px solid #28a745; }
+    .metadata { font-size: 0.9em; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>OSINT Executive Summary Report</h1>
+    <div class="metadata">
+      <p>Generated on: <%= Time.now.strftime('%B %d, %Y at %H:%M') %></p>
+      <p>Report Type: Executive Summary</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Executive Summary</h2>
+    <p>This report provides a high-level overview of the OSINT research findings. The analysis focused on identifying key information, potential risks, and actionable intelligence.</p>
+  </div>
+
+  <div class="section">
+    <h2>Key Findings</h2>
+    <% if research_data && research_data['findings'] %>
+      <div class="findings">
+        <ul>
+          <% research_data['findings'].each do |finding| %>
+            <li><%= finding %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% else %>
+      <p>No specific findings were provided in the research data.</p>
+    <% end %>
+  </div>
+
+  <div class="section">
+    <h2>Recommendations</h2>
+    <% if research_data && research_data['recommendations'] %>
+      <div class="recommendations">
+        <ul>
+          <% research_data['recommendations'].each do |recommendation| %>
+            <li><%= recommendation %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% else %>
+      <p>No specific recommendations were provided in the research data.</p>
+    <% end %>
+  </div>
+
+  <div class="section">
+    <h2>Methodology</h2>
+    <p>The research was conducted using open source intelligence gathering techniques including:</p>
+    <ul>
+      <li>Web search and analysis</li>
+      <li>Social media profiling</li>
+      <li>Domain and IP investigation</li>
+      <li>Public records and database searches</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Confidentiality Notice</h2>
+    <p>This report contains sensitive information and should be handled according to organizational security policies. Distribution of this report is restricted to authorized personnel only.</p>
+  </div>
+</body>
+</html>

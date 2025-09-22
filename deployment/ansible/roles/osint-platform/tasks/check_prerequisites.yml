@@ -1,0 +1,45 @@
+---
+# Check prerequisites task
+
+- name: Check if Docker is installed
+  command: docker --version
+  register: docker_version
+  ignore_errors: yes
+
+- name: Fail if Docker is not installed
+  fail:
+    msg: "Docker is not installed. Please install Docker first."
+  when: docker_version.rc != 0
+
+- name: Display Docker version
+  debug:
+    msg: "Docker version: {{ docker_version.stdout }}"
+
+- name: Check if Docker Compose is installed
+  command: docker-compose --version
+  register: docker_compose_version
+  ignore_errors: yes
+
+- name: Fail if Docker Compose is not installed
+  fail:
+    msg: "Docker Compose is not installed. Please install Docker Compose first."
+  when: docker_compose_version.rc != 0
+
+- name: Display Docker Compose version
+  debug:
+    msg: "Docker Compose version: {{ docker_compose_version.stdout }}"
+
+- name: Check if Git is installed
+  command: git --version
+  register: git_version
+  ignore_errors: yes
+
+- name: Display Git version (if installed)
+  debug:
+    msg: "Git version: {{ git_version.stdout }}"
+  when: git_version.rc == 0
+
+- name: Warn if Git is not installed
+  debug:
+    msg: "Git is not installed. Some features may not work properly."
+  when: git_version.rc != 0

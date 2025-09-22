@@ -1,0 +1,9 @@
+---
+# Start platform task
+
+- name: Start OSINT Platform
+  docker_compose:
+    project_src: "{{ deployment_path }}"
+    files:
+      - "{{ docker_compose_file }}"
+    state: present

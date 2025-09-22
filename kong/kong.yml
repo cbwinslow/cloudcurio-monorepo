@@ -1,0 +1,20 @@
+_format_version: "1.1"
+services:
+  - name: beef-service
+    url: http://beef:3000
+    routes:
+      - name: beef-route
+        paths:
+          - /beef
+  - name: searxng-service
+    url: http://searxng:8080
+    routes:
+      - name: searxng-route
+        paths:
+          - /searxng
+  - name: localai-service
+    url: http://localai:8080
+    routes:
+      - name: localai-route
+        paths:
+          - /localai

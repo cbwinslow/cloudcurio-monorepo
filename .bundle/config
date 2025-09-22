@@ -1,3 +1,4 @@
 ---
 BUNDLE_WITHOUT: "development:test"
 BUNDLE_WITH: "geoip:ext_msf:ext_notifications:ext_dns:ext_qrcode"
+BUNDLE_PATH: "vendor/bundle"

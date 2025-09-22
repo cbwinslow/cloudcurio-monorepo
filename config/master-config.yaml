@@ -1,0 +1,446 @@
+# OSINT Platform Master Configuration
+
+# Platform Information
+platform:
+  name: "OSINT Platform"
+  version: "1.0.0"
+  description: "Comprehensive OSINT platform with 20+ integrated tools"
+  homepage: "https://osint.local"
+
+# Network Configuration
+network:
+  domain: "osint.local"
+  ssl_enabled: true
+  ssl_certificate: "/etc/ssl/certs/osint.crt"
+  ssl_key: "/etc/ssl/private/osint.key"
+  ports:
+    http: 80
+    https: 443
+    traefik_dashboard: 8080
+    kong_admin: 8001
+    kong_ssl: 8443
+    kong_admin_ssl: 8444
+    beef: 3002
+    searxng: 8084
+    localai: 8081
+    ollama: 11434
+    openwebui: 3000
+    localrecall: 8082
+    flowise: 3003
+    mcp_server: 3004
+    n8n: 5678
+    rabbitmq: 5672
+    rabbitmq_management: 15672
+    prometheus: 9090
+    grafana: 3001
+    netdata: 19999
+    loki: 3100
+    fluentd: 24224
+    sentry: 9000
+    redis: 6379
+    archon: 8085
+    ui: 3005
+    ai_agents: 3006
+    portainer: 9001
+    podman: 9002
+    kali_osint: 8086
+    blackarch_osint: 8087
+    blackarch_mcp: 3006
+
+# Database Configuration
+databases:
+  supabase:
+    host: "supabase-db"
+    port: 5432
+    database: "supabase"
+    username: "supabase"
+    password: "supabase123"
+    type: "postgresql"
+    
+  neo4j:
+    host: "neo4j"
+    port: 7687
+    username: "neo4j"
+    password: "neo4j123"
+    type: "neo4j"
+    
+  redis:
+    host: "redis"
+    port: 6379
+    password: ""
+    type: "redis"
+
+# Service Configuration
+services:
+  # Reverse Proxy
+  traefik:
+    enabled: true
+    host: "traefik"
+    port: 8080
+    config_path: "/etc/traefik"
+    
+  # API Gateway
+  kong:
+    enabled: true
+    host: "kong"
+    port: 8000
+    config_path: "/usr/local/kong/declarative"
+    
+  # Database Layer
+  supabase_db:
+    enabled: true
+    host: "supabase-db"
+    port: 5432
+    config_path: "/etc/supabase"
+    
+  neo4j:
+    enabled: true
+    host: "neo4j"
+    port: 7474
+    config_path: "/var/lib/neo4j/conf"
+    
+  # Secrets Management
+  bitwarden:
+    enabled: true
+    host: "bitwarden"
+    port: 8083
+    config_path: "/etc/bitwarden"
+    
+  # Data Collection Layer
+  searxng:
+    enabled: true
+    host: "searxng"
+    port: 8080
+    config_path: "/etc/searxng"
+    
+  beef:
+    enabled: true
+    host: "beef"
+    port: 3000
+    config_path: "/opt/beef/config"
+    
+  n8n:
+    enabled: true
+    host: "n8n"
+    port: 5678
+    config_path: "/home/node/.n8n"
+    
+  # Processing & Analysis Layer
+  localai:
+    enabled: true
+    host: "localai"
+    port: 8080
+    config_path: "/etc/localai"
+    
+  ollama:
+    enabled: true
+    host: "ollama"
+    port: 11434
+    config_path: "/root/.ollama"
+    
+  openwebui:
+    enabled: true
+    host: "openwebui"
+    port: 8080
+    config_path: "/app/backend/data"
+    
+  localrecall:
+    enabled: true
+    host: "localrecall"
+    port: 8082
+    config_path: "/data"
+    
+  flowise:
+    enabled: true
+    host: "flowise"
+    port: 3002
+    config_path: "/root/.flowise"
+    
+  mcp_server:
+    enabled: true
+    host: "mcp-server"
+    port: 3004
+    config_path: "/etc/mcp"
+    
+  # Messaging Layer
+  rabbitmq:
+    enabled: true
+    host: "rabbitmq"
+    port: 5672
+    config_path: "/etc/rabbitmq"
+    
+  # Monitoring & Logging Layer
+  prometheus:
+    enabled: true
+    host: "prometheus"
+    port: 9090
+    config_path: "/etc/prometheus"
+    
+  grafana:
+    enabled: true
+    host: "grafana"
+    port: 3000
+    config_path: "/etc/grafana"
+    
+  netdata:
+    enabled: true
+    host: "netdata"
+    port: 19999
+    config_path: "/etc/netdata"
+    
+  loki:
+    enabled: true
+    host: "loki"
+    port: 3100
+    config_path: "/etc/loki"
+    
+  fluentd:
+    enabled: true
+    host: "fluentd"
+    port: 24224
+    config_path: "/fluentd/etc"
+    
+  sentry:
+    enabled: true
+    host: "sentry"
+    port: 9000
+    config_path: "/etc/sentry"
+    
+  # Additional OSINT Tools
+  archon:
+    enabled: true
+    host: "archon"
+    port: 80
+    config_path: "/etc/archon"
+    
+  # Web Interface
+  web_interface:
+    enabled: true
+    host: "web-interface"
+    port: 3000
+    config_path: "/app"
+    
+  # AI Agents
+  ai_agents:
+    enabled: true
+    host: "ai-agents"
+    port: 3006
+    config_path: "/app"
+    
+  # Container Management
+  portainer:
+    enabled: true
+    host: "portainer"
+    port: 9000
+    config_path: "/data"
+    
+  podman:
+    enabled: true
+    host: "podman"
+    port: 9002
+    config_path: "/etc/containers"
+    
+  # OSINT Tools Containers
+  kali_osint:
+    enabled: true
+    host: "kali-osint"
+    port: 80
+    config_path: "/opt/osint/data"
+    
+  blackarch_osint:
+    enabled: true
+    host: "blackarch-osint"
+    port: 80
+    config_path: "/opt/osint/data"
+    
+  blackarch_mcp:
+    enabled: true
+    host: "blackarch-mcp"
+    port: 3000
+    config_path: "/data"
+
+# Security Configuration
+security:
+  # SSL/TLS Configuration
+  ssl:
+    enabled: true
+    certificate_path: "/etc/ssl/certs"
+    key_path: "/etc/ssl/private"
+    ca_certificate_path: "/etc/ssl/ca"
+    
+  # Authentication Configuration
+  auth:
+    enabled: true
+    provider: "bitwarden"
+    jwt_secret: "supersecretjwtkey"
+    jwt_expiration: 3600
+    
+  # CORS Configuration
+  cors:
+    enabled: true
+    allowed_origins:
+      - "http://localhost:3000"
+      - "https://ui.osint.local"
+      - "https://*.osint.local"
+      
+  # Rate Limiting Configuration
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 1000
+    burst_limit: 500
+    
+  # Firewall Configuration
+  firewall:
+    enabled: true
+    default_policy: "drop"
+    allowed_ports: [80, 443, 22]
+
+# Monitoring Configuration
+monitoring:
+  # Prometheus Configuration
+  prometheus:
+    enabled: true
+    scrape_interval: "15s"
+    evaluation_interval: "15s"
+    
+  # Loki Configuration
+  loki:
+    enabled: true
+    retention_period: "168h"
+    
+  # Alerting Configuration
+  alerting:
+    enabled: true
+    alertmanagers:
+      - "alertmanager:9093"
+      
+  # Health Checks Configuration
+  health_checks:
+    enabled: true
+    interval: "30s"
+    timeout: "10s"
+
+# Backup Configuration
+backup:
+  # Database Backup Configuration
+  database:
+    enabled: true
+    schedule: "0 2 * * *"
+    retention_days: 30
+    storage_path: "/backups/database"
+    
+  # Configuration Backup Configuration
+  config:
+    enabled: true
+    schedule: "0 3 * * 0"
+    retention_days: 90
+    storage_path: "/backups/config"
+    
+  # Data Backup Configuration
+  data:
+    enabled: true
+    schedule: "0 4 * * *"
+    retention_days: 7
+    storage_path: "/backups/data"
+
+# Logging Configuration
+logging:
+  # Centralized Logging Configuration
+  centralized:
+    enabled: true
+    fluentd_host: "fluentd"
+    fluentd_port: 24224
+    
+  # File Logging Configuration
+  file:
+    enabled: true
+    path: "/var/log/osint-platform"
+    max_size: "100MB"
+    max_files: 10
+    
+  # Syslog Configuration
+  syslog:
+    enabled: true
+    host: "syslog.osint.local"
+    port: 514
+
+# Update Configuration
+updates:
+  # Auto-update Configuration
+  auto_update:
+    enabled: true
+    schedule: "0 5 * * *"
+    channel: "stable"
+    
+  # Security Updates Configuration
+  security_updates:
+    enabled: true
+    schedule: "0 6 * * *"
+    auto_apply: true
+
+# Notification Configuration
+notifications:
+  # Email Notifications Configuration
+  email:
+    enabled: true
+    smtp_host: "smtp.gmail.com"
+    smtp_port: 587
+    username: "notifications@osint.local"
+    password: "${NOTIFICATION_EMAIL_PASSWORD}"
+    
+  # Slack Notifications Configuration
+  slack:
+    enabled: true
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    
+  # Discord Notifications Configuration
+  discord:
+    enabled: false
+    webhook_url: "${DISCORD_WEBHOOK_URL}"
+
+# Integration Configuration
+integrations:
+  # GitLab Integration Configuration
+  gitlab:
+    enabled: true
+    url: "https://gitlab.com"
+    api_token: "${GITLAB_API_TOKEN}"
+    
+  # GitHub Integration Configuration
+  github:
+    enabled: true
+    url: "https://github.com"
+    api_token: "${GITHUB_API_TOKEN}"
+    
+  # Cloudflare Integration Configuration
+  cloudflare:
+    enabled: true
+    email: "${CLOUDFLARE_EMAIL}"
+    api_key: "${CLOUDFLARE_API_KEY}"
+    zone_id: "${CLOUDFLARE_ZONE_ID}"
+
+# Environment Variables
+environment:
+  # Docker Environment Variables
+  docker:
+    compose_file: "docker-compose.yml"
+    network_name: "osint-network"
+    
+  # Platform Environment Variables
+  platform:
+    debug: false
+    log_level: "INFO"
+    timezone: "UTC"
+    
+  # Secret Environment Variables (should be overridden)
+  secrets:
+    bitwarden_smtp_password: "${BITWARDEN_SMTP_PASSWORD}"
+    bitwarden_hibp_api_key: "${BITWARDEN_HIBP_API_KEY}"
+    notification_email_password: "${NOTIFICATION_EMAIL_PASSWORD}"
+    slack_webhook_url: "${SLACK_WEBHOOK_URL}"
+    discord_webhook_url: "${DISCORD_WEBHOOK_URL}"
+    gitlab_api_token: "${GITLAB_API_TOKEN}"
+    github_api_token: "${GITHUB_API_TOKEN}"
+    cloudflare_email: "${CLOUDFLARE_EMAIL}"
+    cloudflare_api_key: "${CLOUDFLARE_API_KEY}"
+    cloudflare_zone_id: "${CLOUDFLARE_ZONE_ID}"

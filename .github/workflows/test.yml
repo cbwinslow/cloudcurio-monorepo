@@ -1,0 +1,65 @@
+name: Test OSINT Platform
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          cd ai-agents
+          pip install -r requirements.txt
+
+      - name: Run Python tests
+        run: |
+          cd ai-agents
+          python -m pytest tests/ -v
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: web-interface/package-lock.json
+
+      - name: Install Node.js dependencies
+        run: |
+          cd web-interface
+          npm ci
+
+      - name: Run Node.js tests
+        run: |
+          cd web-interface
+          npm test
+
+      - name: Test Docker Compose
+        run: |
+          docker-compose config
+
+      - name: Test Kali Linux container build
+        run: |
+          cd deployment/docker/kali-osint
+          docker build -t test-kali .
+
+      - name: Test BlackArch container build
+        run: |
+          cd deployment/docker/blackarch-osint
+          docker build -t test-blackarch .
+
+      - name: Test MCP server build
+        run: |
+          cd deployment/docker/mcp-blackarch
+          docker build -t test-mcp .

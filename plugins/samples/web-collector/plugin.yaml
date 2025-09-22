@@ -1,0 +1,10 @@
+name: web-collector
+version: 1.0.0
+description: Collects data from web sources
+type: data-collection
+dependencies:
+  - requests
+  - beautifulsoup4
+configuration:
+  timeout: 30
+  user_agent: "OSINT-Platform/1.0"

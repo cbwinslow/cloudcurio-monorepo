@@ -1,0 +1,205 @@
+# OSINT Platform Configuration File
+# This file contains all the configuration settings and secrets for the OSINT platform
+
+# Platform Settings
+platform:
+  name: "OSINT Platform"
+  version: "1.0.0"
+  environment: "production"  # production, staging, development
+
+# Network Configuration
+network:
+  domain: "osint.local"
+  ssl_enabled: true
+  lets_encrypt_email: "admin@osint.local"
+
+# Database Configuration
+databases:
+  supabase:
+    host: "supabase-db"
+    port: 5432
+    database: "supabase"
+    username: "supabase"
+    password: "supabase123"
+    
+  neo4j:
+    host: "neo4j"
+    port: 7687
+    username: "neo4j"
+    password: "neo4j123"
+
+# Service Configuration
+services:
+  beef:
+    host: "beef"
+    port: 3000
+    username: "beef"
+    password: "SecurePassword123!"
+    
+  searxng:
+    host: "searxng"
+    port: 8080
+    
+  localai:
+    host: "localai"
+    port: 8080
+    
+  openwebui:
+    host: "openwebui"
+    port: 8080
+    
+  localrecall:
+    host: "localrecall"
+    port: 8082
+    
+  flowise:
+    host: "flowise"
+    port: 3002
+    
+  n8n:
+    host: "n8n"
+    port: 5678
+    
+  rabbitmq:
+    host: "rabbitmq"
+    port: 5672
+    management_port: 15672
+    username: "rabbitmq"
+    password: "rabbitmq123"
+    
+  grafana:
+    host: "grafana"
+    port: 3000
+    admin_username: "admin"
+    admin_password: "grafana123"
+    
+  prometheus:
+    host: "prometheus"
+    port: 9090
+    
+  netdata:
+    host: "netdata"
+    port: 19999
+    
+  loki:
+    host: "loki"
+    port: 3100
+    
+  fluentd:
+    host: "fluentd"
+    port: 24224
+    
+  sentry:
+    host: "sentry"
+    port: 9000
+    secret_key: "secret"
+    
+  bitwarden:
+    host: "bitwarden"
+    port: 8083
+
+# API Keys and Secrets
+secrets:
+  # OpenAI API key for LocalAI if needed
+  openai_api_key: "sk-1234567890"
+  
+  # GitHub token for n8n workflows
+  github_token: "ghp_example_token"
+  
+  # Twitter API credentials
+  twitter_api_key: "twitter_api_key"
+  twitter_api_secret: "twitter_api_secret"
+  twitter_access_token: "twitter_access_token"
+  twitter_access_token_secret: "twitter_access_token_secret"
+  
+  # Google API credentials
+  google_api_key: "google_api_key"
+  
+  # Shodan API key
+  shodan_api_key: "shodan_api_key"
+  
+  # VirusTotal API key
+  virustotal_api_key: "virustotal_api_key"
+
+# Monitoring Configuration
+monitoring:
+  alert_emails:
+    - "admin@osint.local"
+    - "security@osint.local"
+  
+  slack_webhook_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+  
+  discord_webhook_url: "https://discord.com/api/webhooks/YOUR/DISCORD/WEBHOOK"
+
+# Logging Configuration
+logging:
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_format: "json"  # json, text
+  log_retention_days: 30
+
+# Backup Configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30
+  storage_path: "/backups"
+  
+  # Cloud storage options (optional)
+  s3_bucket: "osint-backups"
+  s3_region: "us-east-1"
+  s3_access_key: "s3_access_key"
+  s3_secret_key: "s3_secret_key"
+
+# Security Configuration
+security:
+  enable_firewall: true
+  enable_intrusion_detection: true
+  enable_vulnerability_scanning: true
+  scan_schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM
+
+# AI Agents Configuration
+ai_agents:
+  enabled: true
+  model: "gpt-4"  # or local model if using LocalAI
+  max_tokens: 2048
+  temperature: 0.7
+  
+  agents:
+    - name: "data_collector"
+      description: "Collects data from various sources"
+      enabled: true
+      
+    - name: "analyzer"
+      description: "Analyzes collected data for patterns"
+      enabled: true
+      
+    - name: "reporter"
+      description: "Generates reports from analyzed data"
+      enabled: true
+      
+    - name: "alerter"
+      description: "Sends alerts based on findings"
+      enabled: true
+
+# Integration Configuration
+integrations:
+  slack:
+    enabled: true
+    webhook_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+    
+  discord:
+    enabled: true
+    webhook_url: "https://discord.com/api/webhooks/YOUR/DISCORD/WEBHOOK"
+    
+  email:
+    enabled: true
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    username: "your_email@gmail.com"
+    password: "your_email_password"
+    
+  jira:
+    enabled: false
+    server_url: "https://your-domain.atlassian.net"
+    username: "your_email@company.com"
+    api_token: "your_jira_api_token"

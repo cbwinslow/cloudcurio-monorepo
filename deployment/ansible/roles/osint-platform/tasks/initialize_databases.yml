@@ -1,0 +1,22 @@
+---
+# Initialize databases task
+
+- name: Start database services
+  docker_compose:
+    project_src: "{{ deployment_path }}"
+    files:
+      - "{{ docker_compose_file }}"
+    services:
+      - supabase-db
+      - neo4j
+    state: present
+
+- name: Wait for databases to start
+  pause:
+    seconds: 30
+
+- name: Initialize Neo4j database
+  docker_container_exec:
+    container: osint-neo4j
+    command: cypher-shell -u neo4j -p neo4j -d system "ALTER USER neo4j SET PASSWORD '{{ neo4j_password }}'"
+  ignore_errors: yes

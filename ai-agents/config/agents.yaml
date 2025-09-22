@@ -1,0 +1,102 @@
+# AI Agents Configuration
+
+# General settings
+general:
+  model: "gpt-4"  # Default model to use
+  max_tokens: 2048
+  temperature: 0.7
+
+# Agent definitions
+agents:
+  - name: "data_collector"
+    description: "Collects data from various sources"
+    enabled: true
+    tools:
+      - "web_search"
+      - "social_media_monitor"
+      - "database_query"
+  
+  - name: "analyzer"
+    description: "Analyzes collected data for patterns"
+    enabled: true
+    tools:
+      - "pattern_analysis"
+      - "entity_extraction"
+      - "relationship_mapping"
+  
+  - name: "reporter"
+    description: "Generates reports from analyzed data"
+    enabled: true
+    tools:
+      - "report_generation"
+      - "visualization"
+      - "export_data"
+  
+  - name: "alerter"
+    description: "Sends alerts based on findings"
+    enabled: true
+    tools:
+      - "send_email"
+      - "send_slack_message"
+      - "create_jira_ticket"
+
+# Tool configurations
+tools:
+  web_search:
+    type: "searxng"
+    endpoint: "http://searxng:8080"
+  
+  social_media_monitor:
+    type: "twitter"
+    api_key: "${TWITTER_API_KEY}"
+    api_secret: "${TWITTER_API_SECRET}"
+  
+  database_query:
+    type: "supabase"
+    endpoint: "http://supabase-db:5432"
+    username: "supabase"
+    password: "${SUPABASE_PASSWORD}"
+  
+  pattern_analysis:
+    type: "localai"
+    endpoint: "http://localai:8080"
+  
+  entity_extraction:
+    type: "localai"
+    endpoint: "http://localai:8080"
+  
+  relationship_mapping:
+    type: "neo4j"
+    endpoint: "http://neo4j:7474"
+    username: "neo4j"
+    password: "${NEO4J_PASSWORD}"
+  
+  report_generation:
+    type: "localai"
+    endpoint: "http://localai:8080"
+  
+  visualization:
+    type: "grafana"
+    endpoint: "http://grafana:3000"
+    api_key: "${GRAFANA_API_KEY}"
+  
+  export_data:
+    type: "file"
+    output_dir: "/exports"
+  
+  send_email:
+    type: "smtp"
+    server: "smtp.gmail.com"
+    port: 587
+    username: "${EMAIL_USERNAME}"
+    password: "${EMAIL_PASSWORD}"
+  
+  send_slack_message:
+    type: "slack"
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+  
+  create_jira_ticket:
+    type: "jira"
+    server_url: "${JIRA_SERVER_URL}"
+    username: "${JIRA_USERNAME}"
+    api_token: "${JIRA_API_TOKEN}"

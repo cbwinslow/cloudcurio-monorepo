@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OSINT Technical Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1, h2, h3 { color: #333; }
+    h4 { color: #555; }
+    .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+    .section { margin-bottom: 30px; }
+    .data-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+    .data-table th, .data-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .data-table th { background-color: #f2f2f2; }
+    .finding { background: #fff3cd; padding: 10px; margin: 10px 0; border-left: 4px solid #ffc107; }
+    .evidence { background: #d1ecf1; padding: 10px; margin: 10px 0; border-left: 4px solid #0dcaf0; }
+    .metadata { font-size: 0.9em; color: #666; }
+    pre { background: #f8f9fa; padding: 15px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>OSINT Technical Report</h1>
+    <div class="metadata">
+      <p>Generated on: <%= Time.now.strftime('%B %d, %Y at %H:%M') %></p>
+      <p>Report Type: Technical Analysis</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Research Overview</h2>
+    <p>This technical report provides detailed findings from the OSINT research operation. The analysis includes technical data, evidence, and methodologies used during the investigation.</p>
+    
+    <% if research_data && research_data['target'] %>
+      <h3>Target Information</h3>
+      <table class="data-table">
+        <tr>
+          <th>Attribute</th>
+          <th>Value</th>
+        </tr>
+        <% research_data['target'].each do |key, value| %>
+          <tr>
+            <td><%= key.capitalize %></td>
+            <td><%= value %></td>
+          </tr>
+        <% end %>
+      </table>
+    <% end %>
+  </div>
+
+  <div class="section">
+    <h2>Technical Findings</h2>
+    <% if research_data && research_data['technical_findings'] %>
+      <% research_data['technical_findings'].each_with_index do |finding, index| %>
+        <div class="finding">
+          <h4>Finding #<%= index + 1 %>: <%= finding['title'] %></h4>
+          <p><%= finding['description'] %></p>
+          
+          <% if finding['evidence'] %>
+            <div class="evidence">
+              <h5>Evidence:</h5>
+              <pre><%= finding['evidence'] %></pre>
+            </div>
+          <% end %>
+          
+          <% if finding['severity'] %>
+            <p><strong>Severity:</strong> <%= finding['severity'] %></p>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <p>No technical findings were provided in the research data.</p>
+    <% end %>
+  </div>
+
+  <div class="section">
+    <h2>Data Sources</h2>
+    <% if research_data && research_data['sources'] %>
+      <ul>
+        <% research_data['sources'].each do |source| %>
+          <li><%= source %></li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p>No data sources were specified in the research data.</p>
+    <% end %>
+  </div>
+
+  <div class="section">
+    <h2>Methodology</h2>
+    <p>The research was conducted using the following technical approaches:</p>
+    <ol>
+      <li><strong>Reconnaissance:</strong> Initial information gathering through passive means</li>
+      <li><strong>Enumeration:</strong> Active scanning and enumeration of targets</li>
+      <li><strong>Analysis:</strong> Correlation and analysis of collected data</li>
+      <li><strong>Verification:</strong> Validation of findings through multiple sources</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>Limitations</h2>
+    <p>This research has the following limitations:</p>
+    <ul>
+      <li>Data is based on publicly available information only</li>
+      <li>Information may be outdated or inaccurate</li>
+      <li>Some sources may have restricted access</li>
+      <li>Technical limitations of collection methods</li>
+    </ul>
+  </div>
+</body>
+</html>
