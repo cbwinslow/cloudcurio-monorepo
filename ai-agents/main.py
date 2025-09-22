@@ -2,11 +2,16 @@
 
 import sys
 import os
+from dotenv import load_dotenv
 from agents.base import AgentManager
 from agents.impl import DataCollectorAgent, AnalyzerAgent, ReporterAgent, AlerterAgent
+from agents.dashboard_agent import DashboardAgent
 
 def main():
     """Main entry point for the AI agents system"""
+    
+    # Load environment variables
+    load_dotenv()
     
     # Add the current directory to the Python path
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -35,6 +40,14 @@ def main():
     print("Example: Running analyzer agent")
     try:
         result = agent_manager.run_agent("analyzer", "Analyze collected cybersecurity threat data")
+        print(result)
+    except Exception as e:
+        print(f"Error running agent: {e}")
+    
+    print()
+    print("Example: Running dashboard agent")
+    try:
+        result = agent_manager.run_agent("dashboard", "Create an OSINT dashboard")
         print(result)
     except Exception as e:
         print(f"Error running agent: {e}")

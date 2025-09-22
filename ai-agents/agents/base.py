@@ -3,6 +3,10 @@ from typing import List, Optional, Dict, Any
 from abc import ABC, abstractmethod
 import yaml
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 class Tool(BaseModel):
     """Base class for tools that agents can use"""

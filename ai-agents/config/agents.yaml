@@ -39,6 +39,14 @@ agents:
       - "send_email"
       - "send_slack_message"
       - "create_jira_ticket"
+  
+  - name: "dashboard"
+    description: "Creates and manages dashboards"
+    enabled: true
+    tools:
+      - "create_grafana_dashboard"
+      - "list_grafana_dashboards"
+      - "search_dashboards"
 
 # Tool configurations
 tools:
@@ -100,3 +108,18 @@ tools:
     server_url: "${JIRA_SERVER_URL}"
     username: "${JIRA_USERNAME}"
     api_token: "${JIRA_API_TOKEN}"
+  
+  create_grafana_dashboard:
+    type: "grafana"
+    endpoint: "http://grafana:3000"
+    api_key: "${GRAFANA_API_KEY}"
+  
+  list_grafana_dashboards:
+    type: "grafana"
+    endpoint: "http://grafana:3000"
+    api_key: "${GRAFANA_API_KEY}"
+  
+  search_dashboards:
+    type: "grafana"
+    endpoint: "http://grafana:3000"
+    api_key: "${GRAFANA_API_KEY}"

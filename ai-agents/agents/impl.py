@@ -1,4 +1,6 @@
 from agents.base import Agent
+from agents.rag import rag_system
+from agents.dashboard import dashboard_manager
 from typing import Dict, Any
 
 class DataCollectorAgent(Agent):
@@ -6,10 +8,11 @@ class DataCollectorAgent(Agent):
     
     def run(self, task: str) -> str:
         """Run the data collector agent"""
-        # In a real implementation, this would use the registered tools
-        # to collect data based on the task
+        # Use RAG to enhance the task understanding
+        enhanced_task = rag_system.query(f"How should I approach this data collection task: {task}")
         
         result = f"Data collector agent running task: {task}\n"
+        result += f"Enhanced understanding: {enhanced_task}\n\n"
         
         # Example of using tools
         if 'web_search' in self.tool_instances:
@@ -32,7 +35,11 @@ class AnalyzerAgent(Agent):
     
     def run(self, task: str) -> str:
         """Run the analyzer agent"""
+        # Use RAG to enhance the analysis approach
+        analysis_approach = rag_system.query(f"What's the best approach to analyze this data: {task}")
+        
         result = f"Analyzer agent running task: {task}\n"
+        result += f"Recommended approach: {analysis_approach}\n\n"
         
         # Example of using tools
         if 'pattern_analysis' in self.tool_instances:
@@ -55,7 +62,11 @@ class ReporterAgent(Agent):
     
     def run(self, task: str) -> str:
         """Run the reporter agent"""
+        # Use RAG to enhance the reporting approach
+        reporting_guidance = rag_system.query(f"How should I structure a report for: {task}")
+        
         result = f"Reporter agent running task: {task}\n"
+        result += f"Reporting guidance: {reporting_guidance}\n\n"
         
         # Example of using tools
         if 'report_generation' in self.tool_instances:
@@ -70,6 +81,15 @@ class ReporterAgent(Agent):
             result += "Exporting data...\n"
             # result += self.execute_tool('export_data', data=task)
         
+        # Create dashboard if requested
+        if 'create_dashboard' in task.lower():
+            try:
+                dashboard_config = dashboard_manager.load_dashboard_template("osint_dashboard")
+                dashboard_result = dashboard_manager.create_grafana_dashboard(dashboard_config)
+                result += f"Dashboard created: {dashboard_result}\n"
+            except Exception as e:
+                result += f"Failed to create dashboard: {str(e)}\n"
+        
         result += "Report generation completed."
         return result
 
@@ -78,7 +98,11 @@ class AlerterAgent(Agent):
     
     def run(self, task: str) -> str:
         """Run the alerter agent"""
+        # Use RAG to determine appropriate alerting strategy
+        alerting_strategy = rag_system.query(f"What's the best way to alert about: {task}")
+        
         result = f"Alerter agent running task: {task}\n"
+        result += f"Alerting strategy: {alerting_strategy}\n\n"
         
         # Example of using tools
         if 'send_email' in self.tool_instances:

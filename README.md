@@ -1,149 +1,208 @@
 # OSINT Platform
 
-A comprehensive, containerized OSINT (Open Source Intelligence) platform that integrates multiple tools for intelligence gathering, analysis, and visualization.
+A comprehensive, containerized OSINT (Open Source Intelligence) platform that integrates 20+ tools for intelligence gathering, analysis, and visualization.
 
 ## Overview
 
-This platform combines 20+ OSINT tools in a single, easy-to-deploy Docker environment. It includes tools for data collection, processing, storage, analysis, and visualization, all connected through a reverse proxy and API gateway.
+The OSINT Platform is a powerful solution that combines multiple OSINT tools into a single, easy-to-deploy platform. Built with Docker and Docker Compose, it provides a modular architecture that allows for easy deployment and scaling.
+
+![OSINT Platform Architecture](docs/architecture.png)
 
 ## Features
 
-- **Data Collection**: SearXNG, Archon, BeEF, n8n
-- **Processing & Analysis**: LocalAI, OpenWebUI, LocalRecall, Flowise, MCP Server
-- **Storage & Database**: Supabase, Neo4j, Bitwarden
-- **Monitoring & Logging**: Prometheus, Grafana, Netdata, Loki, Fluentd, Sentry
-- **Messaging**: RabbitMQ
-- **Security**: Kong API Gateway, Traefik Reverse Proxy
-- **AI Agents**: Pydantic AI agents with tools
-- **Web Interface**: Next.js configuration interface
+- **20+ Integrated Tools**: Combines popular OSINT tools in a single platform
+- **Containerized Architecture**: Uses Docker for isolation and portability
+- **Microservices Design**: Each service runs in its own container
+- **Centralized Management**: Single interface for managing all services
+- **Extensible Plugin System**: Allows for custom functionality
+- **AI Integration**: Includes LLMs for advanced analysis
+- **Security Focused**: Built-in authentication, encryption, and monitoring
+- **DevOps Ready**: CI/CD pipelines and automated deployment
+
+## Tools Included
+
+### Data Collection
+- **SearXNG**: Metasearch engine for anonymous reconnaissance
+- **Archon**: OSINT resource directory
+- **BeEF**: Browser exploitation framework
+- **n8n**: Workflow automation platform
+
+### Processing & Analysis
+- **LocalAI**: Local AI models for NLP and analysis
+- **Ollama**: LLM inference engine
+- **OpenWebUI**: Interface for interacting with local AI models
+- **LocalRecall**: Semantic search and knowledge base management
+- **Flowise**: Visual AI workflow builder
+- **MCP Server**: Model Context Protocol server
+
+### Storage & Databases
+- **Supabase**: PostgreSQL-based database with real-time capabilities
+- **Neo4j**: Graph database for relationship analysis
+- **Bitwarden**: Secrets management system
+
+### Monitoring & Logging
+- **Prometheus**: Time-series database for metrics collection
+- **Grafana**: Data visualization and dashboarding
+- **Netdata**: Real-time system monitoring
+- **Loki**: Log aggregation system
+- **Fluentd**: Unified logging layer
+- **Sentry**: Error tracking and performance monitoring
+
+### Messaging
+- **RabbitMQ**: Message broker for distributed task processing
+
+### Web Interface
+- **Next.js Frontend**: Modern web interface for platform management
+- **Pydantic AI Agents**: Intelligent agents with access to all platform tools
+
+### Container Management
+- **Portainer**: Container management UI
+- **Podman**: Container engine
+
+### OSINT Tools
+- **Kali OSINT Container**: Container with Kali Linux OSINT tools
+- **BlackArch OSINT Container**: Container with BlackArch Linux OSINT tools
+- **BlackArch MCP Server**: MCP server with BlackArch Linux tools
 
 ## Architecture
 
-The platform follows a microservices architecture with the following layers:
+The platform follows a layered microservices architecture with the following components:
 
-1. **Networking Layer**: Traefik Reverse Proxy for SSL termination and routing
-2. **API Management Layer**: Kong API Gateway for API management
+1. **Reverse Proxy Layer**: Traefik for SSL termination and routing
+2. **API Gateway Layer**: Kong for API management and security
 3. **Data Collection Layer**: Tools for gathering intelligence from various sources
 4. **Processing & Analysis Layer**: AI and workflow tools for data processing
 5. **Storage & Database Layer**: Databases for storing collected intelligence
 6. **Monitoring & Logging Layer**: Tools for monitoring and logging
 7. **Messaging Layer**: RabbitMQ for distributed task processing
+8. **Web Interface Layer**: Next.js interface for configuration and management
+9. **AI Agents Layer**: Pydantic AI agents with tools for automation
+10. **Container Management Layer**: Portainer and Podman for container management
+11. **OSINT Tools Layer**: Specialized containers with Kali Linux and BlackArch tools
 
-## Prerequisites
+## Installation
+
+### Prerequisites
 
 - Docker
 - Docker Compose
 - Git (optional, for updates)
 
-## Quick Start
+### Quick Start
 
-1. **Clone the repository**:
+1. Clone the repository:
    ```bash
    git clone <repository-url>
    cd osint-platform
    ```
 
-2. **Run the setup script**:
+2. Run the setup script:
    ```bash
-   ./scripts/setup-platform.sh
+   ./start-osint-platform.sh
    ```
 
-3. **Start the platform**:
+3. Select option 1 to install the platform
+
+4. Select option 2 to start the platform
+
+5. Access the platform at http://localhost
+
+### Manual Installation
+
+1. Create directory structure:
    ```bash
-   ./scripts/manage-platform.sh start
+   mkdir -p data/{supabase,neo4j,bitwarden,n8n,localai,openwebui,localrecall,flowise,rabbitmq,prometheus,grafana,netdata,sentry,portainer,ollama,kali,blackarch,mcp}
    ```
 
-4. **Access the platform**:
-   - Main interface: http://localhost
-   - Traefik Dashboard: http://localhost:8080
-   - Individual services through their respective subdomains
+2. Start the platform:
+   ```bash
+   docker-compose up -d
+   ```
 
-## Services Included
+3. Access the platform at http://localhost
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Traefik | 80/443, 8080 | Reverse Proxy with SSL |
-| Kong | 8000, 8001, 8443, 8444 | API Gateway |
-| Supabase | 5432 | PostgreSQL database |
-| Neo4j | 7474, 7687 | Graph database |
-| Bitwarden | 8083 | Secrets management |
-| SearXNG | 8084 | Metasearch engine |
-| BeEF | 3002 | Browser exploitation framework |
-| n8n | 5678 | Workflow automation |
-| LocalAI | 8081 | Local AI models |
-| OpenWebUI | 3000 | AI interface |
-| LocalRecall | 8082 | Semantic search |
-| Flowise | 3003 | AI workflow builder |
-| MCP Server | 3004 | Model Context Protocol |
-| RabbitMQ | 5672, 15672 | Message broker |
-| Prometheus | 9090 | Metrics collection |
-| Grafana | 3001 | Data visualization |
-| Netdata | 19999 | System monitoring |
-| Loki | 3100 | Log aggregation |
-| Fluentd | 24224 | Log collection |
-| Sentry | 9000 | Error tracking |
+## Usage
 
-## Management Commands
+### Starting the Platform
 
 ```bash
-# Start the platform
-./scripts/manage-platform.sh start
+./start-osint-platform.sh
+# Select option 2: Start OSINT Platform
+```
 
-# Stop the platform
-./scripts/manage-platform.sh stop
+### Stopping the Platform
 
-# Restart the platform
-./scripts/manage-platform.sh restart
+```bash
+./start-osint-platform.sh
+# Select option 3: Stop OSINT Platform
+```
 
-# View status
-./scripts/manage-platform.sh status
+### Viewing Logs
 
-# View logs (all or specific service)
-./scripts/manage-platform.sh logs
-./scripts/manage-platform.sh logs beef
+```bash
+./start-osint-platform.sh
+# Select option 5: View Platform Logs
+```
 
-# Create backup
-./scripts/manage-platform.sh backup
+### Creating Backups
 
-# Restore from backup
-./scripts/manage-platform.sh restore <backup_file>
+```bash
+./start-osint-platform.sh
+# Select option 7: Backup OSINT Platform
+```
 
-# Update to latest versions
-./scripts/manage-platform.sh update
+### Restoring from Backup
+
+```bash
+./start-osint-platform.sh
+# Select option 8: Restore OSINT Platform
 ```
 
 ## Configuration
 
-The main configuration file is located at `config/osint-platform-config.yaml`. This file contains all settings and secrets for the platform.
+### Master Configuration
 
-## Security Considerations
+The platform uses a master configuration file at `config/master-config.yaml` that contains all settings for all services.
 
-1. **Change default passwords** in the configuration file
-2. **Enable SSL** by setting up proper domain names and certificates
-3. **Restrict access** to sensitive services
-4. **Regular updates** of all services
-5. **Monitor logs** for suspicious activity
+### Service-Specific Configuration
 
-## Backup and Recovery
+Each service has its own configuration directory under `config/services/<service-name>/`.
 
-The platform includes automated backup scripts that can backup:
-- Database dumps (Supabase, Neo4j)
-- Configuration files
-- Service data
+### Environment Variables
 
-Backups are stored in the `backups/` directory by default.
+Sensitive information should be stored as environment variables rather than in configuration files.
 
-## Customization
+### Secrets Management
 
-You can customize the platform by:
-1. Modifying the `docker-compose.yml` file
-2. Updating service configurations in their respective directories
-3. Adding new services to the stack
-4. Modifying the management scripts
+The platform uses Bitwarden for secrets management. Configure Bitwarden with your credentials and API keys.
+
+## Security
+
+### Authentication
+
+The platform uses Bitwarden for secrets management and authentication.
+
+### Encryption
+
+All communications are encrypted using SSL/TLS with Let's Encrypt certificates.
+
+### Network Security
+
+The platform uses Docker networks for isolation and Traefik for access control.
+
+### Monitoring
+
+The platform includes comprehensive monitoring with Prometheus, Grafana, Netdata, and Loki.
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit pull requests.
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## License
 
@@ -152,3 +211,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Support
 
 For support, please open an issue on the GitHub repository.
+
+## Documentation
+
+For detailed documentation, see:
+- [Architecture Documentation](OSINT_PLATFORM_DOCUMENTATION.md)
+- [Configuration Guide](config/master-config.yaml)
+- [Service Configuration](config/services/)
+- [Deployment Guide](deployment/)
+- [API Documentation](docs/api/)
