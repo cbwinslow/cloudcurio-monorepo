@@ -1,0 +1,46 @@
+---
+- name: Download Traefik
+  get_url:
+    url: https://github.com/traefik/traefik/releases/download/v3.0.0/traefik_v3.0.0_linux_amd64.tar.gz
+    dest: /tmp/traefik.tar.gz
+  when: install_traefik
+
+- name: Extract Traefik
+  unarchive:
+    src: /tmp/traefik.tar.gz
+    dest: /usr/local/bin/
+    remote_src: yes
+    mode: '0755'
+  when: install_traefik
+
+- name: Create Traefik config
+  template:
+    src: traefik.yml.j2  # Basic config for dashboard, entrypoints
+    dest: /etc/traefik/traefik.yml
+  become: yes
+  when: install_traefik
+
+- name: Create Traefik systemd service
+  copy:
+    content: |
+      [Unit]
+      Description=Traefik
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/local/bin/traefik --configfile=/etc/traefik/traefik.yml
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/traefik.service
+  become: yes
+  when: install_traefik
+
+- name: Start Traefik
+  systemd:
+    name: traefik
+    state: started
+    enabled: yes
+  become: yes
+  when: install_traefik

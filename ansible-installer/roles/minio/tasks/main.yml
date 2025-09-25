@@ -1,0 +1,55 @@
+---
+- name: Create MinIO user
+  user:
+    name: minio
+    system: yes
+    create_home: no
+  become: yes
+  when: install_minio
+
+- name: Download MinIO
+  get_url:
+    url: https://dl.min.io/server/minio/release/linux-amd64/minio
+    dest: /usr/local/bin/minio
+    mode: '0755'
+  become: yes
+  when: install_minio
+
+- name: Create MinIO directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: minio
+    group: minio
+  loop:
+    - /opt/minio/data
+  become: yes
+  when: install_minio
+
+- name: Create MinIO systemd service
+  copy:
+    content: |
+      [Unit]
+      Description=MinIO
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=minio
+      WorkingDirectory=/opt/minio
+      ExecStart=/usr/local/bin/minio server /opt/minio/data --console-address ":9001"
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/minio.service
+  become: yes
+  when: install_minio
+
+- name: Start MinIO
+  systemd:
+    name: minio
+    state: started
+    enabled: yes
+  become: yes
+  when: install_minio

@@ -1,0 +1,48 @@
+---
+- name: Install Java for Kafka
+  apt:
+    name: openjdk-11-jdk
+    state: present
+  become: yes
+  when: install_apache_kafka
+
+- name: Download Kafka
+  get_url:
+    url: https://downloads.apache.org/kafka/3.7.0/kafka_2.13-3.7.0.tgz
+    dest: /tmp/kafka.tgz
+  when: install_apache_kafka
+
+- name: Extract Kafka
+  unarchive:
+    src: /tmp/kafka.tgz
+    dest: /opt/
+    remote_src: yes
+  when: install_apache_kafka
+
+- name: Create Kafka systemd service
+  copy:
+    content: |
+      [Unit]
+      Description=Apache Kafka
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=kafka
+      WorkingDirectory=/opt/kafka_2.13-3.7.0
+      ExecStart=/opt/kafka_2.13-3.7.0/bin/kafka-server-start.sh /opt/kafka_2.13-3.7.0/config/server.properties
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/kafka.service
+  become: yes
+  when: install_apache_kafka
+
+- name: Start Kafka
+  systemd:
+    name: kafka
+    state: started
+    enabled: yes
+  become: yes
+  when: install_apache_kafka
