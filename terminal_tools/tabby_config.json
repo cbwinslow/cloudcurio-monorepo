@@ -1,0 +1,191 @@
+{
+  "window": {
+    "title": "CloudCurio Terminal",
+    "width": 1200,
+    "height": 800,
+    "maximized": false,
+    "frame": true,
+    "tabHeight": 40,
+    "sidebar": {
+      "size": 200
+    }
+  },
+  "terminals": {
+    "linux": {
+      "shell": "bash",
+      "fontFamily": "FiraCode Nerd Font, JetBrains Mono, Consolas, monospace",
+      "fontSize": 14,
+      "fontWeight": 400,
+      "fontWeightBold": 600,
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "cursor": {
+        "style": "bar",
+        "width": 2,
+        "blink": true
+      },
+      "scrollback": 5000,
+      "copyOnSelect": true,
+      "quickEdit": true,
+      "bell": "off"
+    },
+    "macos": {
+      "shell": "zsh",
+      "fontFamily": "FiraCode Nerd Font, JetBrains Mono, Menlo, monospace",
+      "fontSize": 14,
+      "fontWeight": 400,
+      "fontWeightBold": 600,
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "cursor": {
+        "style": "bar",
+        "width": 2,
+        "blink": true
+      },
+      "scrollback": 5000,
+      "copyOnSelect": true,
+      "quickEdit": true,
+      "bell": "off"
+    },
+    "windows": {
+      "shell": "pwsh",
+      "fontFamily": "Cascadia Code, JetBrains Mono, Consolas, monospace",
+      "fontSize": 14,
+      "fontWeight": 400,
+      "fontWeightBold": 600,
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "cursor": {
+        "style": "bar",
+        "width": 2,
+        "blink": true
+      },
+      "scrollback": 5000,
+      "copyOnSelect": true,
+      "quickEdit": true,
+      "bell": "off"
+    }
+  },
+  "keyboard": {
+    "zoom": {
+      "ctrlPlusMinus": true,
+      "ctrlScroll": true,
+      "ctrl0": true
+    },
+    "shortcuts": {
+      "copy": ["Ctrl+Shift+C", "Cmd+C"],
+      "paste": ["Ctrl+Shift+V", "Cmd+V"],
+      "newTab": ["Ctrl+Shift+T", "Cmd+T"],
+      "closeTab": ["Ctrl+Shift+W", "Cmd+W"],
+      "nextTab": ["Ctrl+Shift+Right", "Cmd+Shift+Right"],
+      "prevTab": ["Ctrl+Shift+Left", "Cmd+Shift+Left"],
+      "splitRight": ["Ctrl+Shift+D", "Cmd+Shift+D"],
+      "splitDown": ["Ctrl+Shift+F", "Cmd+Shift+F"],
+      "paneNavRight": "Ctrl+Alt+Right",
+      "paneNavLeft": "Ctrl+Alt+Left",
+      "paneNavUp": "Ctrl+Alt+Up",
+      "paneNavDown": "Ctrl+Alt+Down"
+    }
+  },
+  "appearance": {
+    "theme": {
+      "type": "dark",
+      "colorScheme": "Material Ocean"
+    },
+    "panel": {
+      "border": "show",
+      "opacity": 0.9
+    },
+    "tab": {
+      "closeButton": "always",
+      "divider": true
+    }
+  },
+  "profiles": [
+    {
+      "id": "local-dev",
+      "name": "Local Development",
+      "type": "local",
+      "options": {
+        "runAsLoginShell": true
+      }
+    },
+    {
+      "id": "ssh-cloudcurio-server",
+      "name": "CloudCurio Server (SSH)",
+      "type": "ssh",
+      "options": {
+        "host": "your-cloudcurio-server.com",
+        "port": 22,
+        "user": "your-username",
+        "privateKey": "~/.ssh/id_rsa",
+        "forwardAgent": true,
+        "keepaliveInterval": 60000,
+        "keepaliveCountMax": 3
+      }
+    },
+    {
+      "id": "ssh-work-server",
+      "name": "Work Server (SSH)",
+      "type": "ssh",
+      "options": {
+        "host": "work-server.example.com",
+        "port": 22,
+        "user": "work-username",
+        "privateKey": "~/.ssh/work_key",
+        "forwardAgent": true,
+        "keepaliveInterval": 60000,
+        "keepaliveCountMax": 3
+      }
+    }
+  ],
+  "ssh": {
+    "configFile": "~/.ssh/config",
+    "knownHostsFile": "~/.ssh/known_hosts",
+    "defaultPrivateKey": "~/.ssh/id_rsa",
+    "connectTimeout": 10000
+  },
+  "terminal": {
+    "experimental": {
+      "canvas": true,
+      "webgl": true
+    }
+  },
+  "plugins": {
+    "ai": {
+      "openai": {
+        "enabled": true,
+        "apiUrl": "https://api.openai.com/v1",
+        "apiKey": "{AI_API_KEY_PLACEHOLDER}",
+        "model": "gpt-4"
+      },
+      "tabby": {
+        "enabled": true,
+        "apiUrl": "http://localhost:5000/v1",
+        "apiKey": "{TABBY_API_KEY_PLACEHOLDER}",
+        "model": "default"
+      }
+    }
+  },
+  "ai": {
+    "provider": "tabby",
+    "inlineCompletion": {
+      "enabled": true,
+      "trigger": "auto",
+      "showHintAfterDelay": 500
+    },
+    "chat": {
+      "enabled": true,
+      "model": "default"
+    }
+  },
+  "updates": {
+    "checkForUpdates": true,
+    "autoDownload": true,
+    "autoInstall": false
+  },
+  "locale": "en",
+  "telemetry": {
+    "enabled": false
+  }
+}

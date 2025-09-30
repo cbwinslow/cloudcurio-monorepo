@@ -1,0 +1,50 @@
+{
+  "documentation_crew": {
+    "name": "Documentation Crew",
+    "description": "Creates comprehensive documentation from codebase analysis",
+    "agents": [
+      {
+        "name": "code_explorer",
+        "role": "Code Explorer",
+        "goal": "Explore and map the CloudCurio codebase structure systematically",
+        "backstory": "You are a systematic code explorer whose primary role is to navigate through the CloudCurio monorepo and create a comprehensive map of all components, their relationships, and dependencies.",
+        "tools": ["list_files", "read_file", "search_codebase"]
+      },
+      {
+        "name": "tech_writer",
+        "role": "Technical Writer",
+        "goal": "Create clear, comprehensive documentation based on code analysis",
+        "backstory": "You are an expert technical writer specializing in creating documentation for complex software systems. You transform technical information into clear, accessible documentation.",
+        "tools": []
+      },
+      {
+        "name": "content_reviewer",
+        "role": "Content Reviewer",
+        "goal": "Ensure documentation quality, accuracy, and completeness",
+        "backstory": "You are a content quality specialist with experience in reviewing technical documentation to ensure it meets standards for accuracy, completeness, and clarity.",
+        "tools": []
+      }
+    ],
+    "tasks": [
+      {
+        "name": "code_mapping_task",
+        "description": "Create a comprehensive map of the CloudCurio codebase, identifying all major components, their functions, and relationships.",
+        "expected_output": "A detailed map of the CloudCurio codebase with component descriptions and relationships."
+      },
+      {
+        "name": "documentation_creation_task",
+        "description": "Using the codebase map, create comprehensive documentation for the CloudCurio platform covering architecture, components, API, deployment, and development procedures.",
+        "expected_output": "Complete documentation files in Markdown format covering all aspects of the CloudCurio platform.",
+        "context": ["code_mapping_task"]
+      },
+      {
+        "name": "quality_assurance_task",
+        "description": "Review the created documentation for accuracy, completeness, clarity, and adherence to technical writing best practices.",
+        "expected_output": "Quality review report with feedback on documentation accuracy, completeness, and areas for improvement.",
+        "context": ["code_mapping_task", "documentation_creation_task"]
+      }
+    ],
+    "process": "sequential",
+    "verbose": 2
+  }
+}

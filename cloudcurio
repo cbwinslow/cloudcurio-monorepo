@@ -1,0 +1,8 @@
+#!/bin/bash
+# CloudCurio CLI launcher
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Run the Python CLI with the correct path
+python3 "$SCRIPT_DIR/ai_tools/cli.py" "$@"

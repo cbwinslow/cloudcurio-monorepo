@@ -1,0 +1,18 @@
+[Unit]
+Description=CloudCurio System Monitor
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+ExecStart=/usr/bin/python3 /home/%i/Projects/cloudcurio/sysmon/sysmon.py monitor --continuous
+WorkingDirectory=/home/%i/Projects/cloudcurio
+Restart=always
+RestartSec=10
+
+# Environment variables
+Environment=PYTHONPATH=/home/%i/Projects/cloudcurio
+Environment=HOME=/home/%i
+
+[Install]
+WantedBy=multi-user.target

@@ -1,7 +1,9 @@
 import os
 from crewai import Crew, Process
-from agents import code_analyst, documentation_specialist, qa_engineer
-from tasks import code_analysis_task, documentation_task, qa_review_task
+from .agents import code_analyst, documentation_specialist, qa_engineer
+from .tasks import code_analysis_task, documentation_task, qa_review_task
+from .config.crew_config_manager import config_manager
+from .ai_tools.config_manager import global_config_manager
 
 # Create the documentation directory if it doesn't exist
 docs_dir = "../docs"

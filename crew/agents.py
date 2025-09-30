@@ -1,11 +1,25 @@
 import os
 from crewai import Agent
-from langchain_openai import ChatOpenAI
 from langchain.tools import tool
+from .config.crew_config_manager import config_manager
+from ..ai_tools.ai_provider import ai_manager, CredentialManager
+from ..ai_tools.config_manager import global_config_manager
 
-# Initialize the LLM
-# Note: You'll need to set OPENAI_API_KEY in your environment variables
-llm = ChatOpenAI(model="gpt-4")
+
+# Initialize the LLM through the AI provider manager
+try:
+    # Get the configured provider
+    provider_name = global_config_manager.get_default_provider()
+    default_model = global_config_manager.get_default_model(provider_name)
+    
+    # For now, we'll still use the LangChain-compatible OpenAI interface for CrewAI compatibility
+    # In a full implementation, we'd need to create LangChain-compatible wrappers for our providers
+    from langchain_openai import ChatOpenAI
+    llm = ChatOpenAI(model="gpt-4")  # Fallback to ensure compatibility with CrewAI
+except:
+    # Fallback to ensure compatibility with CrewAI
+    from langchain_openai import ChatOpenAI
+    llm = ChatOpenAI(model="gpt-4")
 
 # Define custom tools for the agents
 @tool("list_files")

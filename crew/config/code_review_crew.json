@@ -1,0 +1,50 @@
+{
+  "code_review_crew": {
+    "name": "Code Review Crew",
+    "description": "Analyzes codebase and generates documentation",
+    "agents": [
+      {
+        "name": "code_analyst",
+        "role": "Code Analyst",
+        "goal": "Analyze the CloudCurio codebase to understand its structure, components, and functionality",
+        "backstory": "You are an expert software engineer with extensive experience in code analysis. Your task is to examine the codebase in detail, identifying key components, understanding how they interact, and documenting the overall architecture.",
+        "tools": ["list_files", "read_file"]
+      },
+      {
+        "name": "documentation_specialist",
+        "role": "Documentation Specialist",
+        "goal": "Create comprehensive documentation based on the codebase analysis",
+        "backstory": "You are a technical writer with deep expertise in creating developer documentation. Your task is to transform the code analysis into clear, comprehensive documentation and standard operating procedures.",
+        "tools": []
+      },
+      {
+        "name": "qa_engineer",
+        "role": "QA Engineer",
+        "goal": "Review the generated documentation for accuracy and completeness",
+        "backstory": "You are a quality assurance engineer with experience in both code review and technical documentation. Your task is to ensure that all generated documentation accurately reflects the codebase.",
+        "tools": []
+      }
+    ],
+    "tasks": [
+      {
+        "name": "code_analysis_task",
+        "description": "Analyze the CloudCurio codebase to understand its structure and components.",
+        "expected_output": "A comprehensive analysis of the CloudCurio codebase structure and components."
+      },
+      {
+        "name": "documentation_task",
+        "description": "Create comprehensive documentation based on the code analysis.",
+        "expected_output": "Comprehensive documentation files covering all aspects of the CloudCurio platform.",
+        "context": ["code_analysis_task"]
+      },
+      {
+        "name": "qa_review_task",
+        "description": "Review the generated documentation for accuracy and completeness.",
+        "expected_output": "A review of the documentation with feedback on accuracy and completeness.",
+        "context": ["code_analysis_task", "documentation_task"]
+      }
+    ],
+    "process": "sequential",
+    "verbose": 2
+  }
+}

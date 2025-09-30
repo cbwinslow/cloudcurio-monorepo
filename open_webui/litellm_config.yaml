@@ -1,0 +1,71 @@
+# LiteLLM Configuration for CloudCurio
+
+model_list:
+  # OpenAI Models
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      model: openai/gpt-3.5-turbo
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: gpt-4
+    litellm_params:
+      model: openai/gpt-4
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: gpt-4-turbo
+    litellm_params:
+      model: openai/gpt-4-turbo
+      api_key: os.environ/OPENAI_API_KEY
+
+  # Google Gemini Models
+  - model_name: gemini-pro
+    litellm_params:
+      model: gemini/gemini-pro
+      api_key: os.environ/GEMINI_API_KEY
+  - model_name: gemini-1.5-pro
+    litellm_params:
+      model: gemini/gemini-1.5-pro-latest
+      api_key: os.environ/GEMINI_API_KEY
+
+  # Ollama Local Models
+  - model_name: llama3
+    litellm_params:
+      model: ollama/llama3
+      api_base: http://ollama:11434
+  - model_name: mistral
+    litellm_params:
+      model: ollama/mistral
+      api_base: http://ollama:11434
+  - model_name: phi3
+    litellm_params:
+      model: ollama/phi3
+      api_base: http://ollama:11434
+
+  # Anthropic Models (if needed)
+  - model_name: claude-3-opus
+    litellm_params:
+      model: claude-3-opus-20240229
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: claude-3-sonnet
+    litellm_params:
+      model: claude-3-sonnet-20240229
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # Cohere Models (if needed)
+  - model_name: command-r
+    litellm_params:
+      model: command-r
+      api_key: os.environ/COHERE_API_KEY
+
+  # CloudCurio MCP Server Models (example)
+  - model_name: cloudcurio-code-review
+    litellm_params:
+      model: cloudcurio/code-review
+      api_base: http://mcp-server:8000/v1  # Replace with your MCP server URL
+
+# Router settings
+num_retries: 3
+timeout: 60
+allowed_fails: 3
+cooldown_time: 120  # seconds
+
+# Additional settings
+telemetry: False  # Disable telemetry

@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: cloudcurio-open-webui
+    ports:
+      - "3000:8080"
+    volumes:
+      - ./open_webui_data:/app/backend/data
+      - ./open_webui_config:/app/backend/config
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434  # If using Ollama
+      - OPENAI_API_BASE_URLS=http://host.docker.internal:4000/v1  # If using LiteLLM
+      - API_BASE_URL=http://host.docker.internal:8000  # If integrating with MCP server
+      - WEBUI_SECRET_KEY= # Set this to a secure random key
+      - WEBUI_AUTH=false  # Set to true to enable authentication
+      - DEFAULT_MODEL= # Default model to use
+      - ENABLE_RAG_WEB_SEARCH=true
+      - RAG_WEB_SEARCH_ENGINE=duckduckgo
+      - RAG_WEB_SEARCH_RESULT_COUNT=3
+      - RAG_WEB_SEARCH_CONCURRENT_REQUESTS=3
+    networks:
+      - cloudcurio-net
+    restart: unless-stopped
+    depends_on:
+      - ollama  # If using Ollama
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # For Docker Desktop
+
+  # Optional: Ollama service for local models
+  ollama:
+    image: ollama/ollama:latest
+    container_name: cloudcurio-ollama
+    volumes:
+      - ./ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+    networks:
+      - cloudcurio-net
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    # Uncomment the following if you have an NVIDIA GPU
+    # command: ollama serve
+
+  # Optional: LiteLLM proxy for multiple AI providers
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: cloudcurio-litellm
+    ports:
+      - "4000:4000"
+    environment:
+      - OLLAMA_API_BASE=http://ollama:11434  # Connect to Ollama in the same network
+      - OPENAI_API_BASE=https://api.openai.com/v1
+      - OPENAI_API_KEY= # Set your OpenAI API key here
+      - GEMINI_API_KEY= # Set your Gemini API key here
+      - MODEL_MAP= # Define model mapping, e.g., gpt-3.5-turbo:openai/gpt-3.5-turbo
+    volumes:
+      - ./litellm_config.yaml:/app/config.yaml
+    networks:
+      - cloudcurio-net
+    restart: unless-stopped
+    depends_on:
+      - ollama
+
+networks:
+  cloudcurio-net:
+    driver: bridge

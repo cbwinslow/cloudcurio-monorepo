@@ -1,5 +1,5 @@
 from crewai import Task
-from agents import code_analyst, documentation_specialist, qa_engineer
+from .agents import code_analyst, documentation_specialist, qa_engineer
 
 # Define the tasks
 code_analysis_task = Task(
