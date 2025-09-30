@@ -1,0 +1,88 @@
+name: Documentation Generation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install documentation dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install sphinx sphinx-rtd-theme myst-parser
+    
+    - name: Generate documentation
+      run: |
+        cd docs
+        make html
+    
+    - name: Upload documentation artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: generated-documentation
+        path: docs/_build/html/
+    
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/_build/html
+        destination_dir: docs
+
+  update-readme:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r crew/requirements.txt
+    
+    - name: Generate API documentation
+      run: |
+        # Generate API docs from code
+        python -c "
+import os
+import sys
+sys.path.insert(0, '.')
+        
+# Generate API documentation
+with open('API_DOCS.md', 'w') as f:
+    f.write('# CloudCurio API Documentation\\n\\n')
+    f.write('Auto-generated API documentation\\n\\n')
+    
+    # Add documentation for each module
+    modules = ['ai_tools', 'crew', 'sysmon', 'config_editor', 'feature_tracking']
+    for module in modules:
+        f.write(f'## {module.capitalize()} Module\\n\\n')
+        f.write(f'Documentation for the {module} module.\\n\\n')
+"
+    
+    - name: Commit updated documentation
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add API_DOCS.md || echo "No API docs to add"
+        git commit -m "Update API documentation" || echo "No changes to commit"
+        git push || echo "No changes to push"

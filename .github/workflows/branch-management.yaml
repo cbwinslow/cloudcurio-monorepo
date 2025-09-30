@@ -1,0 +1,174 @@
+name: Branch Management
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    types: [ closed ]
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'cleanup'
+        type: choice
+        options:
+          - cleanup
+          - sync
+          - protect
+
+jobs:
+  branch-cleanup:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'cleanup')
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Git
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+    
+    - name: Clean up merged branches
+      run: |
+        # Get list of remote branches
+        git fetch --prune
+        
+        # Delete merged branches
+        for branch in $(git branch -r --merged origin/main | grep -E 'origin/(feature|bugfix|hotfix)' | sed 's/origin\///'); do
+          echo "Deleting merged branch: $branch"
+          git push origin --delete "$branch" || echo "Failed to delete $branch"
+        done
+        
+        # Also clean up local tracking branches
+        git remote prune origin
+
+  branch-protection:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'protect'
+    
+    steps:
+    - name: Configure branch protection rules
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          // Configure branch protection for main
+          await github.rest.repos.updateBranchProtection({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            branch: 'main',
+            required_status_checks: {
+              strict: true,
+              contexts: ['ci/cd']
+            },
+            enforce_admins: true,
+            required_pull_request_reviews: {
+              required_approving_review_count: 1
+            },
+            restrictions: null
+          });
+          
+          // Configure branch protection for develop
+          await github.rest.repos.updateBranchProtection({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            branch: 'develop',
+            required_status_checks: {
+              strict: false,
+              contexts: ['unit-tests', 'code-quality']
+            },
+            enforce_admins: false,
+            required_pull_request_reviews: {
+              required_approving_review_count: 1
+            },
+            restrictions: null
+          });
+
+  branch-sync:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'sync'
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Sync develop with main
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        
+        git checkout develop
+        git pull origin develop
+        git merge origin/main
+        git push origin develop
+
+  stale-branch-notification:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+    - name: Check for stale branches
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const { data: branches } = await github.rest.repos.listBranches({
+            owner: context.repo.owner,
+            repo: context.repo.repo
+          });
+          
+          const now = new Date();
+          const staleBranches = [];
+          
+          for (const branch of branches) {
+            // Skip main and develop branches
+            if (['main', 'develop'].includes(branch.name)) continue;
+            
+            // Get the last commit on this branch
+            try {
+              const { data: commits } = await github.rest.repos.listCommits({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: branch.name,
+                per_page: 1
+              });
+              
+              if (commits.length > 0) {
+                const lastCommitDate = new Date(commits[0].commit.author.date);
+                const daysSinceLastCommit = (now - lastCommitDate) / (1000 * 60 * 60 * 24);
+                
+                if (daysSinceLastCommit > 30) {
+                  staleBranches.push({
+                    name: branch.name,
+                    lastCommit: lastCommitDate.toISOString(),
+                    daysOld: Math.round(daysSinceLastCommit)
+                  });
+                }
+              }
+            } catch (error) {
+              console.log(`Could not get commit history for ${branch.name}`);
+            }
+          }
+          
+          if (staleBranches.length > 0) {
+            let message = `## Stale Branches Alert\n\nThe following branches have not been updated in over 30 days:\n\n`;
+            for (const branch of staleBranches) {
+              message += `- **${branch.name}**: Last updated ${branch.daysOld} days ago (${branch.lastCommit})\n`;
+            }
+            message += `\nConsider cleaning up these branches to maintain repository hygiene.`;
+            
+            // Create an issue to notify maintainers
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Stale Branches Detected',
+              body: message,
+              labels: ['maintenance', 'stale-branches']
+            });
+          }

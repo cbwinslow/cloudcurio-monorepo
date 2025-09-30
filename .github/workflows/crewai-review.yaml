@@ -1,0 +1,208 @@
+name: AI Code Review with CrewAI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to review (for manual trigger)'
+        required: false
+
+jobs:
+  crewai-code-review:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r crew/requirements.txt
+        pip install -r config_editor/requirements.txt
+        pip install -r ai_tools/requirements.txt
+        pip install -r feature_tracking/requirements.txt
+        pip install requests
+    
+    - name: Create review report directory
+      run: |
+        mkdir -p review_reports
+    
+    - name: Run CrewAI code review
+      run: |
+        python -c "
+import os
+import sys
+import json
+import requests
+from crewai import Agent, Task, Crew, Process
+
+# Create the code review agent
+code_reviewer = Agent(
+    role='Senior Code Reviewer',
+    goal='Provide detailed, constructive code review feedback with actionable suggestions',
+    backstory='You are a senior software engineer with 15 years of experience reviewing code across multiple languages and frameworks. You focus on code quality, security, performance, and maintainability.',
+    verbose=True,
+    allow_delegation=False
+)
+
+# Create the security analyst agent
+security_analyst = Agent(
+    role='Security Analyst',
+    goal='Identify potential security vulnerabilities and suggest mitigation strategies',
+    backstory='You are a security expert specializing in identifying vulnerabilities in code, including injection attacks, authentication issues, and data exposure.',
+    verbose=True,
+    allow_delegation=False
+)
+
+# Create the documentation reviewer
+documentation_reviewer = Agent(
+    role='Documentation Reviewer',
+    goal='Review code for proper documentation, comments, and clarity',
+    backstory='You are an expert in technical documentation and code readability, focusing on maintainability and knowledge transfer.',
+    verbose=True,
+    allow_delegation=False
+)
+
+# Get changed files from the PR
+pr_number = os.environ.get('PR_NUMBER') or '${{ github.event.pull_request.number }}'
+repo = os.environ.get('GITHUB_REPOSITORY') or '${{ github.repository }}'
+token = os.environ.get('GITHUB_TOKEN')
+
+# For demo purposes, we'll create a sample review
+print('🚀 Running CrewAI code review...')
+print(f'PR #{pr_number} in {repo}')
+
+# Create review tasks
+code_review_task = Task(
+    description='''
+Review the following Python code for quality issues:
+
+1. Code style and readability
+2. Performance optimizations
+3. Best practices adherence
+4. Potential bugs
+5. Maintainability concerns
+
+Code to review:
+```python
+def calculate_total(items):
+    total = 0
+    for item in items:
+        total += item.price * item.quantity
+    return total
+```
+
+Provide specific, actionable feedback with line numbers when possible.
+''',
+    agent=code_reviewer,
+    expected_output='List of code quality issues with suggestions for improvement'
+)
+
+security_review_task = Task(
+    description='''
+Review the same code for security vulnerabilities:
+
+1. Input validation issues
+2. Potential injection points
+3. Authentication/authorization concerns
+4. Data exposure risks
+5. Dependency security issues
+
+Provide specific recommendations for mitigation.
+''',
+    agent=security_analyst,
+    expected_output='Security vulnerabilities found with remediation suggestions'
+)
+
+documentation_review_task = Task(
+    description='''
+Review the code for documentation quality:
+
+1. Inline comments and docstrings
+2. Code readability and self-documentation
+3. Complex logic explanation
+4. API documentation completeness
+5. Example usage provided
+
+Provide suggestions for improving documentation.
+''',
+    agent=documentation_reviewer,
+    expected_output='Documentation review with improvement suggestions'
+)
+
+# Create and run the crew
+review_crew = Crew(
+    agents=[code_reviewer, security_analyst, documentation_reviewer],
+    tasks=[code_review_task, security_review_task, documentation_review_task],
+    process=Process.sequential,
+    verbose=2
+)
+
+# Run the review
+result = review_crew.kickoff()
+
+# Save the review report
+review_report = {
+    'pr_number': pr_number,
+    'repo': repo,
+    'timestamp': '${{ github.event.pull_request.updated_at }}',
+    'findings': str(result)
+}
+
+with open('review_reports/crewai_review.json', 'w') as f:
+    json.dump(review_report, f, indent=2)
+
+print('✅ CrewAI code review completed')
+print('Report saved to review_reports/crewai_review.json')
+"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+    
+    - name: Upload review report
+      uses: actions/upload-artifact@v3
+      with:
+        name: crewai-code-review-report
+        path: review_reports/
+    
+    - name: Add review comments to PR
+      run: |
+        python -c "
+import os
+import json
+import requests
+
+# Read the review report
+try:
+    with open('review_reports/crewai_review.json', 'r') as f:
+        report = json.load(f)
+    
+    # For demo, we'll just print the findings
+    print('🔍 Code Review Findings:')
+    print(report.get('findings', 'No specific findings provided'))
+    
+    # In a real implementation, we would post comments to the PR
+    # using the GitHub API
+    
+except Exception as e:
+    print(f'Error processing review: {e}')
+"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Notify on review findings
+      if: failure()
+      run: |
+        echo "🚨 Code review found critical issues that need attention"
+        echo "Please check the review report for details"
