@@ -218,6 +218,20 @@ print('To run a crew: Use the MCP server API or CrewAI directly')
 "
 	@echo "Agentic platform started"
 
+# Run feature tracking demo
+.PHONY: demo-tracking
+demo-tracking: setup
+	@echo "Running CloudCurio Feature Tracking Demo..."
+	@$(VENV_BIN)/$(PYTHON) demo_feature_tracking.py
+	@echo "Feature tracking demo completed"
+
+# Run AI code review demo
+.PHONY: demo-ai-review
+demo-ai-review: setup
+	@echo "Running CloudCurio AI Code Review Demo..."
+	@$(VENV_BIN)/$(PYTHON) scripts/ai_code_review.py --file demo_feature_tracking.py
+	@echo "AI code review demo completed"
+
 # Install script
 .PHONY: install-script
 install-script:
