@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # CloudCurio Final Verification Script
-# This script verifies that all components of the CloudCurio platform are properly implemented
+# This script verifies that all components of the CloudCurio platform are properly implemented and deployed
 
 echo "==========================================="
 echo "CloudCurio v2.1.0 Final Verification"
