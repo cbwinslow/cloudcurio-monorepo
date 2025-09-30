@@ -1,0 +1,37 @@
+---
+- name: Install LiteLLM (Python proxy for LLMs)
+  pip:
+    name: litellm
+    state: present
+  become: yes
+  when: install_litellm
+
+- name: Create LiteLLM config for Ollama/LocalAI/OpenWebUI
+  copy:
+    content: |
+      model_list:
+        - model_name: ollama/llama2
+          litellm_params:
+            model: ollama/llama2
+            api_base: http://localhost:11434  # Ollama
+        - model_name: localai/llama2
+          litellm_params:
+            model: localai/llama2
+            api_base: http://localhost:8080/v1  # LocalAI
+        - model_name: openwebui/llama2
+          litellm_params:
+            model: openwebui/llama2
+            api_base: http://localhost:3000/v1  # OpenWebUI
+      general_settings:
+        success_callback: ["langfuse"]  # For usage tracking
+        failure_callback: ["langfuse"]
+    dest: /opt/litellm/config.yaml
+  become: yes
+  when: install_litellm
+
+- name: Start LiteLLM proxy (usage measurement)
+  shell: litellm --config /opt/litellm/config.yaml --port 4000
+  async: 45
+  poll: 0
+  become: yes
+  when: install_litellm

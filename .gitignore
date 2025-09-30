@@ -1,3 +1,29 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment variables
+.env*
+*.local
+
+# Next.js
+.next/
+out/
+build/
+
+# Prisma
+prisma/migrations/
+*.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*$py.class
+*.sqlite3
+venv/
+.env
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -174,9 +200,13 @@ htmlcov/
 .env.local
 .env.production
 .env.development
+
 *.swp
 *.swo
 *~
+
+# Embedded repos
+ansible-installer/tui/bubbletea/
 
 # Docker
 .dockerenv
