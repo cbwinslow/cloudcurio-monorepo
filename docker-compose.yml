@@ -1,0 +1,168 @@
+version: '3.8'
+
+services:
+  # MCP Server - Main API for managing AI crews
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: cloudcurio-mcp-server
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DEFAULT_AI_PROVIDER=${DEFAULT_AI_PROVIDER:-openrouter}
+      - DATABASE_URL=postgresql://postgres:password@db:5432/cloudcurio
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - cloudcurio-net
+
+  # Configuration Editor - Web interface for managing configs
+  config-editor:
+    build:
+      context: .
+      dockerfile: Dockerfile.config-editor
+    container_name: cloudcurio-config-editor
+    ports:
+      - "8081:8081"
+    environment:
+      - PYTHONPATH=/app
+      - MCP_SERVER_URL=http://mcp-server:8000
+    depends_on:
+      - mcp-server
+    restart: unless-stopped
+    networks:
+      - cloudcurio-net
+
+  # Ollama for local AI models
+  ollama:
+    image: ollama/ollama:latest
+    container_name: cloudcurio-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=5m
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - cloudcurio-net
+
+  # LiteLLM for AI provider abstraction
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: cloudcurio-litellm
+    ports:
+      - "4000:4000"
+    environment:
+      - OLLAMA_API_BASE=http://ollama:11434
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./open_webui/litellm_config.yaml:/app/config.yaml
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    networks:
+      - cloudcurio-net
+
+  # Open WebUI for graphical AI interaction
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: cloudcurio-open-webui
+    ports:
+      - "3000:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OPENAI_API_BASE_URLS=http://litellm:4000/v1
+      - API_BASE_URL=http://mcp-server:8000
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - WEBUI_AUTH=${WEBUI_AUTH:-false}
+    volumes:
+      - ./open_webui_data:/app/backend/data
+    depends_on:
+      - ollama
+      - litellm
+      - mcp-server
+    restart: unless-stopped
+    networks:
+      - cloudcurio-net
+
+  # Database for storing crew results and telemetry
+  db:
+    image: postgres:15
+    container_name: cloudcurio-db
+    environment:
+      POSTGRES_DB: cloudcurio
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - cloudcurio-net
+
+  # Redis for task queue management
+  redis:
+    image: redis:7-alpine
+    container_name: cloudcurio-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - cloudcurio-net
+
+  # Agentic worker for running AI crews
+  agentic-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: cloudcurio-agentic-worker
+    environment:
+      - PYTHONPATH=/app
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DATABASE_URL=postgresql://postgres:password@db:5432/cloudcurio
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - ollama
+    command: ["python", "-c", "from agentic_platform import CloudCurioAgenticPlatform; platform = CloudCurioAgenticPlatform(); print('Agentic worker ready')"]
+    restart: unless-stopped
+    networks:
+      - cloudcurio-net
+
+networks:
+  cloudcurio-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  ollama_data:
+  open_webui_data:

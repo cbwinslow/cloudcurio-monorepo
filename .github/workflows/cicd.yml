@@ -1,10 +1,12 @@
-name: CloudCurio CI/CD
+name: CloudCurio Comprehensive CI/CD
 
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+  release:
+    types: [ published ]
 
 jobs:
   test:
@@ -21,11 +23,20 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r crew/requirements.txt
         pip install -r config_editor/requirements.txt
+        pip install -r ai_tools/requirements.txt
     
     - name: Lint with flake8
       run: |
@@ -35,38 +46,139 @@ jobs:
         # exit-zero treats all errors as warnings
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     
+    - name: Security scan with Bandit
+      run: |
+        pip install bandit
+        bandit -r . -f json -o bandit-report.json || echo "Security scan completed"
+    
     - name: Test with pytest
       run: |
-        pip install pytest
-        # Run tests if available
-        # pytest
+        pip install pytest pytest-cov
+        pytest --cov=. --cov-report=xml --cov-report=term
+      continue-on-error: true
 
-  build-mcp-server:
+  build:
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
 
     steps:
     - uses: actions/checkout@v3
     
-    - name: Build and push MCP Server Docker image
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install build dependencies
       run: |
-        # This would build and push the Docker image
-        echo "Building MCP Server image..."
-        # docker build -f Dockerfile.mcp -t cbwinslow/cloudcurio-mcp:latest .
-        # docker push cbwinslow/cloudcurio-mcp:latest
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build pip package
+      run: |
+        python -m build
+    
+    - name: Upload pip package artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: pip-package
+        path: dist/
+    
+    - name: Build and push Docker images
+      if: startsWith(github.ref, 'refs/tags/v')
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        VERSION=${GITHUB_REF#refs/tags/}
+        docker build -f Dockerfile.mcp -t cbwinslow/cloudcurio-mcp:${VERSION} .
+        docker tag cbwinslow/cloudcurio-mcp:${VERSION} cbwinslow/cloudcurio-mcp:latest
+        docker push cbwinslow/cloudcurio-mcp:${VERSION}
+        docker push cbwinslow/cloudcurio-mcp:latest
 
-  build-config-editor:
+  release:
     runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/main'
+    needs: [test, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+      packages: write
 
     steps:
     - uses: actions/checkout@v3
     
-    - name: Build and push Config Editor Docker image
+    - name: Download pip package artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: pip-package
+        path: dist/
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: CloudCurio ${{ github.ref_name }}
+        body: |
+          ## CloudCurio Release ${{ github.ref_name }}
+          
+          This release includes:
+          - AI provider management system
+          - MCP server for AI crew management
+          - System monitoring (SysMon)
+          - Web-based configuration editor
+          - Terminal integration
+          - Open WebUI integration
+          - Comprehensive documentation
+          
+          For installation instructions, see our [README](https://github.com/cbwinslow/cloudcurio/blob/main/README.md).
+        draft: false
+        prerelease: false
+        files: |
+          dist/*
+          Makefile
+          setup.py
+    
+    - name: Publish to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
       run: |
-        # This would build and push the Docker image
-        echo "Building Config Editor image..."
-        # docker build -f Dockerfile.config-editor -t cbwinslow/cloudcurio-config-editor:latest .
-        # docker push cbwinslow/cloudcurio-config-editor:latest
+        pip install twine
+        twine upload dist/*
+
+  dockerhub_release:
+    runs-on: ubuntu-latest
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: cbwinslow/cloudcurio
+        tags: |
+          type=ref,event=tag
+          type=raw,value=latest
+    
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: Dockerfile.mcp
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}

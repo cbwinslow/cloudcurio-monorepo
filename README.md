@@ -1,10 +1,48 @@
 # CloudCurio: AI-Powered Development Platform (Monorepo)
 
-> **Note**: This is the main repository for the CloudCurio platform. For the latest version and complete documentation, see [MONOREPO_README.md](MONOREPO_README.md)
+> **Note**: This is the main repository for the CloudCurio platform. For the latest version and complete documentation, see [MONOREPO_README.md](MONOREPO_README.md) or [ENHANCED_README.md](ENHANCED_README.md)
 
 CloudCurio is an AI-powered platform designed to automate code review, documentation generation, and vulnerability assessment for software projects. The system leverages CrewAI to orchestrate teams of AI agents that can analyze codebases, generate documentation, and identify security vulnerabilities.
 
 This repository has been restructured as a monorepo to better organize the various components of the CloudCurio platform. For complete information about the project structure, components, and usage, please refer to the [Monorepo README](MONOREPO_README.md).
+
+## 🌟 What's New
+
+CloudCurio now includes:
+
+- **🤖 Agentic Platform**: Advanced multi-agent system with configurable agents and crews
+- **🚀 Release Management**: Automated versioning, tagging, and publishing system  
+- **📦 Complete Packaging**: PyPI packages, Docker images, and comprehensive installers
+- **🔧 Enhanced Configuration**: Web-based editor with AI-powered action classification
+- **🔄 CI/CD Pipelines**: Automated testing and deployment on GitHub and GitLab
+- **🏗️ Build Automation**: Comprehensive Makefile for development and deployment
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.10+
+- Docker (for containerized deployment)
+- API keys for AI providers (if using cloud models)
+
+### Installation Options
+
+#### Pip Installation
+```bash
+pip install cloudcurio
+```
+
+#### Docker Installation
+```bash
+docker pull cbwinslow/cloudcurio-mcp:latest
+docker run -p 8000:8000 -e OPENROUTER_API_KEY=your_key_here cbwinslow/cloudcurio-mcp:latest
+```
+
+#### Complete Platform (Docker Compose)
+```bash
+docker-compose up -d
+```
+
+For complete installation and usage instructions, see our [Enhanced README](ENHANCED_README.md).
 
 ## Features
 

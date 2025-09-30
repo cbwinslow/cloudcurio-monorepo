@@ -232,3 +232,33 @@ See the CONTRIBUTING.md file for guidelines on how to contribute to the project.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Additional Documentation
+
+For more detailed information about specific components, see the following documentation:
+
+### Core Components
+- [Feature Tracking System](feature_tracking/README.md) - Comprehensive feature usage tracking
+- [Developer Documentation for Feature Tracking](feature_tracking/DEVELOPER_DOCS.md) - Technical implementation details
+- [Branching and Tagging Strategy](BRANCHING_TAGGING_STRATEGY.md) - Git workflow and versioning guidelines
+- [Agentic Platform Documentation](AGENTIC_PLATFORM_DOCS.md) - Detailed agentic platform implementation
+
+### Component-Specific Documentation
+- [AI Tools Documentation](ai_tools/README.md) - Multi-provider AI integration
+- [MCP Server Documentation](crew/mcp_server/README.md) - Model Context Protocol server
+- [SysMon Documentation](sysmon/README.md) - System monitoring and configuration tracking
+- [Configuration Editor Documentation](config_editor/README.md) - Web-based configuration management
+- [Container Documentation](container/README.md) - Docker configurations and deployment
+
+### Development Guides
+- [API Documentation](docs/API.md) - REST API specification for MCP server
+- [Setup Guides](docs/SETUP.md) - Installation and configuration instructions
+- [Examples Repository](examples/EXAMPLES_REPOSITORY.md) - Practical usage examples
+- [Procedure Handbook](PROCEDURE_HANDBOOK.md) - Complete usage guide with examples
+- [Roadmap](ROADMAP.md) - Project development timeline and future plans
+
+### Administrative Documentation
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
+- [Task List](TASK_LIST.md) - Master task management system
+- [Monorepo Structure](MONOREPO_STRUCTURE.md) - Project organization guide
+- [Compliance Documentation](docs/COMPLIANCE.md) - Security and compliance guidelines
