@@ -1,0 +1,133 @@
+---
+# Ollama Deployment for Local AI Models
+# This manifest deploys Ollama for running local AI models
+
+---
+# ConfigMap for Ollama configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ollama-config
+  namespace: cloudcurio
+data:
+  OLLAMA_HOST: "0.0.0.0:11434"
+  OLLAMA_MODELS: "/root/.ollama/models"
+  OLLAMA_KEEP_ALIVE: "5m"
+
+---
+# PersistentVolumeClaim for Ollama models
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models-pvc
+  namespace: cloudcurio
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi  # Adjust based on model requirements
+
+---
+# Service for Ollama
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-service
+  namespace: cloudcurio
+  labels:
+    app: ollama
+spec:
+  selector:
+    app: ollama
+  ports:
+    - protocol: TCP
+      port: 11434
+      targetPort: 11434
+  type: ClusterIP
+
+---
+# Deployment for Ollama
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-deployment
+  namespace: cloudcurio
+  labels:
+    app: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - containerPort: 11434
+          envFrom:
+            - configMapRef:
+                name: ollama-config
+          volumeMounts:
+            - name: ollama-models
+              mountPath: /root/.ollama/models
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+              nvidia.com/gpu: "1"  # For GPU acceleration
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+              nvidia.com/gpu: "1"  # For GPU acceleration
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: ollama-models
+          persistentVolumeClaim:
+            claimName: ollama-models-pvc
+      nodeSelector:
+        nvidia.com/gpu.present: "true"  # Schedule on GPU nodes
+
+---
+# Horizontal Pod Autoscaler for Ollama
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ollama-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ollama-deployment
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

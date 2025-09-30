@@ -1,0 +1,230 @@
+# CloudCurio Production Values
+# This file contains values optimized for production environments
+
+# Global configuration
+global:
+  imageTag: "2.2.0"
+  namespace: "cloudcurio"
+
+# MCP Server configuration
+mcpServer:
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Configuration Editor configuration
+configEditor:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Ollama configuration
+ollama:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+      nvidia.com/gpu: 1
+    requests:
+      cpu: 2000m
+      memory: 4Gi
+      nvidia.com/gpu: 1
+  nodeSelector:
+    nvidia.com/gpu.present: "true"
+  persistence:
+    enabled: true
+    size: 100Gi
+    accessModes:
+      - ReadWriteOnce
+
+# LiteLLM configuration
+litellm:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Open WebUI configuration
+openWebUI:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  persistence:
+    enabled: true
+    size: 20Gi
+    accessModes:
+      - ReadWriteOnce
+
+# PostgreSQL database configuration
+postgresql:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+  auth:
+    username: "postgres"
+    password: "password"  # Change this in production!
+    database: "cloudcurio"
+  primary:
+    persistence:
+      enabled: true
+      size: 50Gi
+      accessModes:
+        - ReadWriteOnce
+
+# Redis configuration
+redis:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  master:
+    persistence:
+      enabled: true
+      size: 20Gi
+      accessModes:
+        - ReadWriteOnce
+
+# Monitoring stack configuration
+monitoring:
+  enabled: true
+  
+  # Prometheus configuration
+  prometheus:
+    replicaCount: 1
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    retention: "30d"
+    persistence:
+      enabled: true
+      size: 100Gi
+      accessModes:
+        - ReadWriteOnce
+  
+  # Grafana configuration
+  grafana:
+    replicaCount: 1
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    adminUser: "admin"
+    adminPassword: "admin"  # Change this in production!
+    persistence:
+      enabled: true
+      size: 20Gi
+      accessModes:
+        - ReadWriteOnce
+  
+  # Loki configuration
+  loki:
+    replicaCount: 1
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    persistence:
+      enabled: true
+      size: 100Gi
+      accessModes:
+        - ReadWriteOnce
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: cloudcurio.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: cloudcurio-tls
+      hosts:
+        - cloudcurio.example.com
+
+# Resource limits and requests for the entire platform
+resources:
+  limits:
+    cpu: 8000m
+    memory: 16Gi
+  requests:
+    cpu: 4000m
+    memory: 8Gi
+
+# Affinity rules
+affinity: {}
+
+# Node selector rules
+nodeSelector: {}
+
+# Tolerations
+tolerations: []

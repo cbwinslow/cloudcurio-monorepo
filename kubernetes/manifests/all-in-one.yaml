@@ -1,0 +1,383 @@
+---
+# CloudCurio Platform - Complete Kubernetes Deployment
+# This manifest deploys the complete CloudCurio platform on Kubernetes
+
+---
+# Namespace for CloudCurio
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloudcurio
+
+---
+# ConfigMap for global CloudCurio configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudcurio-global-config
+  namespace: cloudcurio
+data:
+  CLOUDCURIO_VERSION: "2.2.0"
+  LOG_LEVEL: "INFO"
+  DEBUG: "False"
+  DEFAULT_AI_PROVIDER: "openrouter"
+  MCP_HOST: "0.0.0.0"
+  MCP_PORT: "8000"
+  CONFIG_EDITOR_HOST: "0.0.0.0"
+  CONFIG_EDITOR_PORT: "8081"
+  OLLAMA_HOST: "0.0.0.0"
+  OLLAMA_PORT: "11434"
+  LITELLM_HOST: "0.0.0.0"
+  LITELLM_PORT: "4000"
+  OPEN_WEBUI_HOST: "0.0.0.0"
+  OPEN_WEBUI_PORT: "3000"
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  PROMETHEUS_HOST: "prometheus-service.cloudcurio-monitoring.svc.cluster.local"
+  PROMETHEUS_PORT: "9090"
+  GRAFANA_HOST: "grafana-service.cloudcurio-monitoring.svc.cluster.local"
+  GRAFANA_PORT: "3000"
+  LOKI_HOST: "loki-service.cloudcurio-monitoring.svc.cluster.local"
+  LOKI_PORT: "3100"
+
+---
+# Secret for global CloudCurio credentials
+# Note: In production, use sealed secrets or external secret management
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudcurio-global-secrets
+  namespace: cloudcurio
+type: Opaque
+data:
+  # Base64 encoded values - replace with actual values
+  OPENROUTER_API_KEY: "YOUR_OPENROUTER_API_KEY_BASE64"
+  OPENAI_API_KEY: "YOUR_OPENAI_API_KEY_BASE64"
+  GEMINI_API_KEY: "YOUR_GEMINI_API_KEY_BASE64"
+  POSTGRES_USER: "cG9zdGdyZXM="  # "postgres" in base64
+  POSTGRES_PASSWORD: "cGFzc3dvcmQ="  # "password" in base64
+  POSTGRES_DB: "Y2xvdWRjdXJpbw=="  # "cloudcurio" in base64
+  REDIS_PASSWORD: "cmVkaXMtcGFzc3dvcmQ="  # "redis-password" in base64
+
+---
+# ServiceAccount for CloudCurio
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cloudcurio-service-account
+  namespace: cloudcurio
+
+---
+# Role for CloudCurio
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cloudcurio-role
+  namespace: cloudcurio
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps", "secrets", "persistentvolumeclaims"]
+    verbs: ["get", "list", "create", "update", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "create", "update", "delete"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "create", "update", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "create", "update", "delete"]
+
+---
+# RoleBinding for CloudCurio
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cloudcurio-role-binding
+  namespace: cloudcurio
+subjects:
+  - kind: ServiceAccount
+    name: cloudcurio-service-account
+    namespace: cloudcurio
+roleRef:
+  kind: Role
+  name: cloudcurio-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# NetworkPolicy for CloudCurio
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cloudcurio-network-policy
+  namespace: cloudcurio
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: cloudcurio
+        - podSelector: {}
+  egress:
+    - to:
+        - namespaceSelector: {}
+        - podSelector: {}
+
+---
+# Ingress for CloudCurio (requires Ingress controller)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloudcurio-ingress
+  namespace: cloudcurio
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: cloudcurio.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cloudcurio-mcp-server
+                port:
+                  number: 8000
+          - path: /config-editor
+            pathType: Prefix
+            backend:
+              service:
+                name: cloudcurio-config-editor
+                port:
+                  number: 8081
+          - path: /open-webui
+            pathType: Prefix
+            backend:
+              service:
+                name: open-webui-service
+                port:
+                  number: 3000
+          - path: /ollama
+            pathType: Prefix
+            backend:
+              service:
+                name: ollama-service
+                port:
+                  number: 11434
+          - path: /litellm
+            pathType: Prefix
+            backend:
+              service:
+                name: litellm-service
+                port:
+                  number: 4000
+          - path: /monitoring
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana-service
+                port:
+                  number: 3000
+
+---
+# HorizontalPodAutoscaler for CloudCurio MCP Server
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cloudcurio-mcp-server-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cloudcurio-mcp-server
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# HorizontalPodAutoscaler for CloudCurio Config Editor
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cloudcurio-config-editor-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cloudcurio-config-editor
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# HorizontalPodAutoscaler for Ollama
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ollama-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ollama-deployment
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# HorizontalPodAutoscaler for LiteLLM
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: litellm-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: litellm-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# HorizontalPodAutoscaler for Open WebUI
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: open-webui-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: open-webui-deployment
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# HorizontalPodAutoscaler for PostgreSQL
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: postgres-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: postgres-deployment
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# HorizontalPodAutoscaler for Redis
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: redis-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: redis-deployment
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

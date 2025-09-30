@@ -1,0 +1,118 @@
+# CloudCurio Development Values
+# This file contains values optimized for development environments
+
+# Global configuration
+global:
+  imageTag: "2.2.0-dev"
+  namespace: "cloudcurio-dev"
+
+# MCP Server configuration
+mcpServer:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  autoscaling:
+    enabled: false
+
+# Configuration Editor configuration
+configEditor:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  autoscaling:
+    enabled: false
+
+# Ollama configuration
+ollama:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  nodeSelector: {}
+
+# LiteLLM configuration
+litellm:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  autoscaling:
+    enabled: false
+
+# Open WebUI configuration
+openWebUI:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  autoscaling:
+    enabled: false
+  persistence:
+    enabled: false
+
+# PostgreSQL database configuration
+postgresql:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  primary:
+    persistence:
+      enabled: false
+
+# Redis configuration
+redis:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 125m
+      memory: 128Mi
+  master:
+    persistence:
+      enabled: false
+
+# Monitoring stack configuration
+monitoring:
+  enabled: false
+
+# Ingress configuration
+ingress:
+  enabled: false
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 1000m
+    memory: 2Gi

@@ -1,0 +1,154 @@
+---
+# CloudCurio MCP Server Deployment
+# This manifest deploys the Model Context Protocol server for CloudCurio
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloudcurio
+
+---
+# ConfigMap for MCP Server configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudcurio-mcp-config
+  namespace: cloudcurio
+data:
+  MCP_HOST: "0.0.0.0"
+  MCP_PORT: "8000"
+  MCP_DEBUG: "False"
+  DEFAULT_AI_PROVIDER: "openrouter"
+  LOG_LEVEL: "INFO"
+
+---
+# Secret for MCP Server API keys
+# Note: In production, use sealed secrets or external secret management
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudcurio-mcp-secrets
+  namespace: cloudcurio
+type: Opaque
+data:
+  # Base64 encoded values - replace with actual values
+  OPENROUTER_API_KEY: "YOUR_OPENROUTER_API_KEY_BASE64"
+  OPENAI_API_KEY: "YOUR_OPENAI_API_KEY_BASE64"
+  GEMINI_API_KEY: "YOUR_GEMINI_API_KEY_BASE64"
+
+---
+# Service for MCP Server
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudcurio-mcp-server
+  namespace: cloudcurio
+  labels:
+    app: cloudcurio-mcp-server
+spec:
+  selector:
+    app: cloudcurio-mcp-server
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
+
+---
+# Deployment for MCP Server
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudcurio-mcp-server
+  namespace: cloudcurio
+  labels:
+    app: cloudcurio-mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudcurio-mcp-server
+  template:
+    metadata:
+      labels:
+        app: cloudcurio-mcp-server
+    spec:
+      containers:
+        - name: mcp-server
+          image: cbwinslow/cloudcurio-mcp:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: cloudcurio-mcp-config
+            - secretRef:
+                name: cloudcurio-mcp-secrets
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+
+---
+# Horizontal Pod Autoscaler for MCP Server
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cloudcurio-mcp-server-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cloudcurio-mcp-server
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# Ingress for MCP Server (requires Ingress controller)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloudcurio-mcp-ingress
+  namespace: cloudcurio
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: cloudcurio.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cloudcurio-mcp-server
+                port:
+                  number: 8000

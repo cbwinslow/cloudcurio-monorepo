@@ -1,0 +1,149 @@
+---
+# Open WebUI Deployment for Graphical AI Interaction
+# This manifest deploys Open WebUI for graphical interaction with AI models
+
+---
+# ConfigMap for Open WebUI configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open-webui-config
+  namespace: cloudcurio
+data:
+  OPEN_WEBUI_HOST: "0.0.0.0"
+  OPEN_WEBUI_PORT: "3000"
+  OPEN_WEBUI_DEBUG: "False"
+  OLLAMA_BASE_URL: "http://ollama-service:11434"
+  LITELLM_BASE_URL: "http://litellm-service:4000"
+  WEBUI_SECRET_KEY: "your-secret-key-here"  # Should be replaced with a secure random key
+  WEBUI_AUTH: "False"  # Set to true to enable authentication
+  DEFAULT_MODEL: "cloudcurio-model"  # Default model to use
+
+---
+# Secret for Open WebUI sensitive configuration
+# Note: In production, use sealed secrets or external secret management
+apiVersion: v1
+kind: Secret
+metadata:
+  name: open-webui-secrets
+  namespace: cloudcurio
+type: Opaque
+data:
+  # Base64 encoded values - replace with actual values
+  WEBUI_SECRET_KEY: "eW91ci1zZWNyZXQta2V5LWhlcmU="  # "your-secret-key-here" in base64
+
+---
+# PersistentVolumeClaim for Open WebUI data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: open-webui-data-pvc
+  namespace: cloudcurio
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# Service for Open WebUI
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-webui-service
+  namespace: cloudcurio
+  labels:
+    app: open-webui
+spec:
+  selector:
+    app: open-webui
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+
+---
+# Deployment for Open WebUI
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-webui-deployment
+  namespace: cloudcurio
+  labels:
+    app: open-webui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: open-webui
+  template:
+    metadata:
+      labels:
+        app: open-webui
+    spec:
+      containers:
+        - name: open-webui
+          image: ghcr.io/open-webui/open-webui:main
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: open-webui-config
+            - secretRef:
+                name: open-webui-secrets
+          volumeMounts:
+            - name: open-webui-data
+              mountPath: /app/backend/data
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: open-webui-data
+          persistentVolumeClaim:
+            claimName: open-webui-data-pvc
+
+---
+# Horizontal Pod Autoscaler for Open WebUI
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: open-webui-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: open-webui-deployment
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

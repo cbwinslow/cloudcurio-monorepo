@@ -1,0 +1,209 @@
+---
+# LiteLLM Deployment for AI Provider Abstraction
+# This manifest deploys LiteLLM as a proxy for multiple AI providers
+
+---
+# ConfigMap for LiteLLM configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+  namespace: cloudcurio
+data:
+  MODEL_ALIAS: "cloudcurio-model"
+  LITELLM_HOST: "0.0.0.0"
+  LITELLM_PORT: "4000"
+  LITELLM_DEBUG: "False"
+  LITELLM_LOG_LEVEL: "INFO"
+
+---
+# Secret for LiteLLM API keys
+# Note: In production, use sealed secrets or external secret management
+apiVersion: v1
+kind: Secret
+metadata:
+  name: litellm-secrets
+  namespace: cloudcurio
+type: Opaque
+data:
+  # Base64 encoded values - replace with actual values
+  OPENROUTER_API_KEY: "YOUR_OPENROUTER_API_KEY_BASE64"
+  OPENAI_API_KEY: "YOUR_OPENAI_API_KEY_BASE64"
+  GEMINI_API_KEY: "YOUR_GEMINI_API_KEY_BASE64"
+  ANTHROPIC_API_KEY: "YOUR_ANTHROPIC_API_KEY_BASE64"
+  COHERE_API_KEY: "YOUR_COHERE_API_KEY_BASE64"
+  REPLICATE_API_KEY: "YOUR_REPLICATE_API_KEY_BASE64"
+  HUGGINGFACE_API_KEY: "YOUR_HUGGINGFACE_API_KEY_BASE64"
+  AZURE_API_KEY: "YOUR_AZURE_API_KEY_BASE64"
+  AWS_ACCESS_KEY_ID: "YOUR_AWS_ACCESS_KEY_ID_BASE64"
+  AWS_SECRET_ACCESS_KEY: "YOUR_AWS_SECRET_ACCESS_KEY_BASE64"
+
+---
+# Service for LiteLLM
+apiVersion: v1
+kind: Service
+metadata:
+  name: litellm-service
+  namespace: cloudcurio
+  labels:
+    app: litellm
+spec:
+  selector:
+    app: litellm
+  ports:
+    - protocol: TCP
+      port: 4000
+      targetPort: 4000
+  type: ClusterIP
+
+---
+# Deployment for LiteLLM
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm-deployment
+  namespace: cloudcurio
+  labels:
+    app: litellm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litellm
+  template:
+    metadata:
+      labels:
+        app: litellm
+    spec:
+      containers:
+        - name: litellm
+          image: ghcr.io/berriai/litellm:main-latest
+          ports:
+            - containerPort: 4000
+          envFrom:
+            - configMapRef:
+                name: litellm-config
+            - secretRef:
+                name: litellm-secrets
+          volumeMounts:
+            - name: litellm-config-volume
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: litellm-config-volume
+          configMap:
+            name: litellm-config-file
+
+---
+# ConfigMap for LiteLLM config file
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config-file
+  namespace: cloudcurio
+data:
+  config.yaml: |
+    model_list:
+      - model_name: cloudcurio-model
+        litellm_params:
+          model: "openrouter/mistralai/mistral-7b-instruct"
+          api_key: "os.environ/OPENROUTER_API_KEY"
+      
+      - model_name: gpt-3.5-turbo-proxy
+        litellm_params:
+          model: "openai/gpt-3.5-turbo"
+          api_key: "os.environ/OPENAI_API_KEY"
+      
+      - model_name: gemini-pro-proxy
+        litellm_params:
+          model: "gemini/gemini-pro"
+          api_key: "os.environ/GEMINI_API_KEY"
+      
+      - model_name: claude-3-opus-proxy
+        litellm_params:
+          model: "claude-3-opus-20240229"
+          api_key: "os.environ/ANTHROPIC_API_KEY"
+      
+      - model_name: command-r-proxy
+        litellm_params:
+          model: "command-r"
+          api_key: "os.environ/COHERE_API_KEY"
+      
+      - model_name: replicate-llama-proxy
+        litellm_params:
+          model: "replicate/meta/llama-2-70b-chat:02e509c789964a7ea8736978a43525956ef40397be9033abf9fd2badfe68c9e3"
+          api_key: "os.environ/REPLICATE_API_KEY"
+      
+      - model_name: huggingface-falcon-proxy
+        litellm_params:
+          model: "huggingface/bigscience/bloom"
+          api_key: "os.environ/HUGGINGFACE_API_KEY"
+      
+      - model_name: azure-gpt-4-proxy
+        litellm_params:
+          model: "azure/gpt-4"
+          api_key: "os.environ/AZURE_API_KEY"
+          api_base: "https://your-resource-name.openai.azure.com/"
+          api_version: "2023-05-15"
+      
+      - model_name: bedrock-claude-proxy
+        litellm_params:
+          model: "bedrock/anthropic.claude-v2"
+          aws_access_key_id: "os.environ/AWS_ACCESS_KEY_ID"
+          aws_secret_access_key: "os.environ/AWS_SECRET_ACCESS_KEY"
+          aws_region_name: "us-west-2"
+    
+    router_settings:
+      num_retries: 3
+      timeout: 60
+      allowed_fails: 3
+      cooldown_time: 120
+    
+    telemetry: False
+
+---
+# Horizontal Pod Autoscaler for LiteLLM
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: litellm-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: litellm-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

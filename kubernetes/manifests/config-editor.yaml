@@ -1,0 +1,109 @@
+---
+# CloudCurio Configuration Editor Deployment
+# This manifest deploys the web-based configuration editor
+
+---
+# ConfigMap for Config Editor configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudcurio-config-editor-config
+  namespace: cloudcurio
+data:
+  CONFIG_EDITOR_HOST: "0.0.0.0"
+  CONFIG_EDITOR_PORT: "8081"
+  CONFIG_EDITOR_DEBUG: "False"
+  MCP_SERVER_URL: "http://cloudcurio-mcp-server:8000"
+
+---
+# Service for Config Editor
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudcurio-config-editor
+  namespace: cloudcurio
+  labels:
+    app: cloudcurio-config-editor
+spec:
+  selector:
+    app: cloudcurio-config-editor
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
+  type: ClusterIP
+
+---
+# Deployment for Config Editor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudcurio-config-editor
+  namespace: cloudcurio
+  labels:
+    app: cloudcurio-config-editor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudcurio-config-editor
+  template:
+    metadata:
+      labels:
+        app: cloudcurio-config-editor
+    spec:
+      containers:
+        - name: config-editor
+          image: cbwinslow/cloudcurio-config-editor:latest
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: cloudcurio-config-editor-config
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 5
+
+---
+# Horizontal Pod Autoscaler for Config Editor
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cloudcurio-config-editor-hpa
+  namespace: cloudcurio
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cloudcurio-config-editor
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

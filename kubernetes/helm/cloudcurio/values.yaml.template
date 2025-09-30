@@ -1,0 +1,421 @@
+# CloudCurio Helm Chart Values Template
+
+# This file contains the default values for the CloudCurio Helm chart.
+# You can override these values by creating a custom values file and passing it to Helm.
+
+# Global configuration
+global:
+  # Global Docker image registry
+  imageRegistry: ""
+  
+  # Global Docker image tag
+  imageTag: "2.2.0"
+  
+  # Global Docker registry secret names as an array
+  imagePullSecrets: []
+  
+  # Global storage class for dynamic provisioning
+  storageClass: ""
+  
+  # Namespace to deploy CloudCurio to
+  namespace: "cloudcurio"
+
+# CloudCurio MCP Server configuration
+mcpServer:
+  # Enable MCP Server deployment
+  enabled: true
+  
+  # Number of MCP Server replicas
+  replicaCount: 1
+  
+  # MCP Server image configuration
+  image:
+    repository: cbwinslow/cloudcurio-mcp
+    tag: ""
+    pullPolicy: IfNotPresent
+  
+  # MCP Server service configuration
+  service:
+    type: ClusterIP
+    port: 8000
+  
+  # MCP Server resource limits and requests
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  
+  # MCP Server autoscaling configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  # MCP Server node selector
+  nodeSelector: {}
+  
+  # MCP Server tolerations
+  tolerations: []
+  
+  # MCP Server affinity
+  affinity: {}
+
+# Configuration Editor configuration
+configEditor:
+  # Enable Configuration Editor deployment
+  enabled: true
+  
+  # Number of Configuration Editor replicas
+  replicaCount: 1
+  
+  # Configuration Editor image configuration
+  image:
+    repository: cbwinslow/cloudcurio-config-editor
+    tag: ""
+    pullPolicy: IfNotPresent
+  
+  # Configuration Editor service configuration
+  service:
+    type: ClusterIP
+    port: 8081
+  
+  # Configuration Editor resource limits and requests
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  
+  # Configuration Editor autoscaling configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Ollama configuration
+ollama:
+  # Enable Ollama deployment
+  enabled: true
+  
+  # Number of Ollama replicas
+  replicaCount: 1
+  
+  # Ollama image configuration
+  image:
+    repository: ollama/ollama
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  # Ollama service configuration
+  service:
+    type: ClusterIP
+    port: 11434
+  
+  # Ollama resource limits and requests
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+      # For GPU acceleration (requires NVidia GPU drivers)
+      nvidia.com/gpu: 1
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+      # For GPU acceleration (requires NVidia GPU drivers)
+      nvidia.com/gpu: 1
+  
+  # Node selector for GPU nodes
+  nodeSelector:
+    nvidia.com/gpu.present: "true"
+  
+  # Ollama persistence configuration
+  persistence:
+    enabled: true
+    size: 50Gi
+    accessModes:
+      - ReadWriteOnce
+
+# LiteLLM configuration
+litellm:
+  # Enable LiteLLM deployment
+  enabled: true
+  
+  # Number of LiteLLM replicas
+  replicaCount: 1
+  
+  # LiteLLM image configuration
+  image:
+    repository: ghcr.io/berriai/litellm
+    tag: "main-latest"
+    pullPolicy: IfNotPresent
+  
+  # LiteLLM service configuration
+  service:
+    type: ClusterIP
+    port: 4000
+  
+  # LiteLLM resource limits and requests
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  
+  # LiteLLM autoscaling configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Open WebUI configuration
+openWebUI:
+  # Enable Open WebUI deployment
+  enabled: true
+  
+  # Number of Open WebUI replicas
+  replicaCount: 1
+  
+  # Open WebUI image configuration
+  image:
+    repository: ghcr.io/open-webui/open-webui
+    tag: "main"
+    pullPolicy: IfNotPresent
+  
+  # Open WebUI service configuration
+  service:
+    type: ClusterIP
+    port: 3000
+  
+  # Open WebUI resource limits and requests
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  
+  # Open WebUI autoscaling configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  # Open WebUI persistence configuration
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+
+# PostgreSQL database configuration
+postgresql:
+  # Enable PostgreSQL deployment
+  enabled: true
+  
+  # Number of PostgreSQL replicas
+  replicaCount: 1
+  
+  # PostgreSQL image configuration
+  image:
+    repository: postgres
+    tag: "15"
+    pullPolicy: IfNotPresent
+  
+  # PostgreSQL service configuration
+  service:
+    type: ClusterIP
+    port: 5432
+  
+  # PostgreSQL authentication configuration
+  auth:
+    username: "postgres"
+    password: "password"
+    database: "cloudcurio"
+  
+  # PostgreSQL resource limits and requests
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  
+  # PostgreSQL primary persistence configuration
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+      accessModes:
+        - ReadWriteOnce
+
+# Redis configuration
+redis:
+  # Enable Redis deployment
+  enabled: true
+  
+  # Number of Redis replicas
+  replicaCount: 1
+  
+  # Redis image configuration
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  
+  # Redis service configuration
+  service:
+    type: ClusterIP
+    port: 6379
+  
+  # Redis resource limits and requests
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  
+  # Redis master persistence configuration
+  master:
+    persistence:
+      enabled: true
+      size: 10Gi
+      accessModes:
+        - ReadWriteOnce
+
+# Monitoring stack configuration
+monitoring:
+  # Enable monitoring stack deployment
+  enabled: true
+  
+  # Prometheus configuration
+  prometheus:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: prom/prometheus
+      tag: "v2.45.0"
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 9090
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    retention: "15d"
+    persistence:
+      enabled: true
+      size: 50Gi
+      accessModes:
+        - ReadWriteOnce
+  
+  # Grafana configuration
+  grafana:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: grafana/grafana
+      tag: "10.0.3"
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3000
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    adminUser: "admin"
+    adminPassword: "admin"
+    persistence:
+      enabled: true
+      size: 10Gi
+      accessModes:
+        - ReadWriteOnce
+  
+  # Loki configuration
+  loki:
+    enabled: true
+    replicaCount: 1
+    image:
+      repository: grafana/loki
+      tag: "2.8.3"
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3100
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    persistence:
+      enabled: true
+      size: 50Gi
+      accessModes:
+        - ReadWriteOnce
+
+# Ingress configuration
+ingress:
+  # Enable ingress
+  enabled: false
+  
+  # Ingress class name
+  className: ""
+  
+  # Ingress annotations
+  annotations: {}
+  
+  # Ingress hosts
+  hosts:
+    - host: cloudcurio.local
+      paths:
+        - path: /
+          pathType: Prefix
+  
+  # Ingress TLS configuration
+  tls: []
+
+# Resource limits and requests for the entire platform
+resources:
+  limits:
+    cpu: 4000m
+    memory: 8Gi
+  requests:
+    cpu: 2000m
+    memory: 4Gi
+
+# Affinity rules
+affinity: {}
+
+# Node selector rules
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
