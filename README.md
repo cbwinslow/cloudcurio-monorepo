@@ -1,333 +1,73 @@
-# CloudCurio: AI-Powered Development Platform (Monorepo)
-
-> **Note**: This is the main repository for the CloudCurio platform. For the latest version and complete documentation, see [MONOREPO_README.md](MONOREPO_README.md) or [ENHANCED_README.md](ENHANCED_README.md)
-
-CloudCurio is an AI-powered platform designed to automate code review, documentation generation, and vulnerability assessment for software projects. The system leverages CrewAI to orchestrate teams of AI agents that can analyze codebases, generate documentation, and identify security vulnerabilities.
-
-This repository has been restructured as a monorepo to better organize the various components of the CloudCurio platform. For complete information about the project structure, components, and usage, please refer to the [Monorepo README](MONOREPO_README.md).
-
-## 🌟 What's New
-
-CloudCurio now includes:
-
-- **🤖 Agentic Platform**: Advanced multi-agent system with configurable agents and crews
-- **🚀 Release Management**: Automated versioning, tagging, and publishing system  
-- **📦 Complete Packaging**: PyPI packages, Docker images, and comprehensive installers
-- **🔧 Enhanced Configuration**: Web-based editor with AI-powered action classification
-- **🔄 CI/CD Pipelines**: Automated testing and deployment on GitHub and GitLab
-- **🏗️ Build Automation**: Comprehensive Makefile for development and deployment
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Python 3.10+
-- Docker (for containerized deployment)
-- API keys for AI providers (if using cloud models)
-
-### Installation Options
-
-#### Pip Installation
-```bash
-pip install cloudcurio
-```
-
-#### Docker Installation
-```bash
-docker pull cbwinslow/cloudcurio-mcp:latest
-docker run -p 8000:8000 -e OPENROUTER_API_KEY=your_key_here cbwinslow/cloudcurio-mcp:latest
-```
-
-#### Complete Platform (Docker Compose)
-```bash
-docker-compose up -d
-```
-
-For complete installation and usage instructions, see our [Enhanced README](ENHANCED_README.md).
-
-## Features
-
-- Automated code review with AI agents
-- Documentation generation from codebase analysis
-- Vulnerability assessment and security scanning
-- REST API for crew management
-- Support for multiple AI providers (OpenRouter, OpenAI, Google Gemini, Ollama, LocalAI, Qwen, Groq, Grok, LM Studio, SambaNova, DeepInfra, Models.dev, LiteLLM, and more)
-- Secure credential storage using GPG encryption
-- Portable configuration system with persistent agent configurations
-- Database logging for crew results and telemetry
-- Configurable crew types and workflows
-
-## Architecture
-
-- **MCP Server**: Model Context Protocol server managing AI crews
-- **CrewAI Framework**: Orchestrates teams of AI agents
-- **AI Tools Integration**: Multiple AI model support
-- **Database Layer**: Stores execution results and telemetry
-- **Monitoring Stack**: Observability for platform health
-
-## Prerequisites
-
-- Python 3.10+
-- Docker (for containerized deployment)
-- API keys for AI providers (if using cloud models)
-- GPG (for secure credential storage, optional but recommended)
-
-## Installation
-
-### Local Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/cbwinslow/cloudcurio.git
-   cd cloudcurio
-   ```
-
-2. Create a virtual environment and install dependencies:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r crew/requirements.txt
-   ```
-
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys and configuration
-   ```
-
-4. [Optional] Setup GPG for secure credential storage:
-   ```bash
-   # On Ubuntu/Debian
-   sudo apt-get install gnupg
-   
-   # On macOS
-   brew install gnupg
-   ```
+# CloudCurio: The Sentient Homelab Project
 
-5. Configure AI providers using the CLI:
-   ```bash
-   # Setup configuration directory
-   python -m ai_tools.cli setup
-   
-   # Add API keys for providers you want to use
-   python -m ai_tools.cli add-credential openai
-   python -m ai_tools.cli add-credential gemini
-   python -m ai_tools.cli add-credential openrouter
-   # ... etc for other providers
-   
-   # Set default provider
-   python -m ai_tools.cli set-default openrouter
-   ```
-
-6. Start the MCP server:
-   ```bash
-   python crew/mcp_server/start_server.py
-   ```
-
-### Docker Installation
-
-To run CloudCurio using Docker:
-
-```bash
-docker build -f Dockerfile.mcp -t cloudcurio-mcp .
-docker run -p 8000:8000 -e OPENAI_API_KEY=your_key_here cloudcurio-mcp
-```
-
-## AI Provider Support
-
-CloudCurio supports multiple AI providers:
-
-- **OpenRouter**: Access to multiple models from Mistral, Google, OpenAI, and others
-- **OpenAI**: GPT models (GPT-3.5, GPT-4, GPT-4 Turbo)
-- **Google Gemini**: Gemini Pro, Gemini 1.5 models
-- **Ollama**: Local open-source models (Llama, Mistral, etc.)
-- **LocalAI**: OpenAI-compatible local API
-- **Alibaba Qwen**: Qwen series models
-- **Groq**: High-speed inference with Llama and Mixtral
-- **xAI Grok**: Grok models from xAI
-- **LM Studio**: Local models via LM Studio API
-- **SambaNova**: Enterprise-grade Llama models
-- **DeepInfra**: Access to open-source models
-- **Models.dev**: Open-source model hosting
-- **LiteLLM**: Proxy for multiple LLM providers
-
-## Secure Credential Storage
-
-CloudCurio uses GPG encryption to securely store API keys locally:
-
-1. Credentials are encrypted using a passphrase (by default using an environment variable)
-2. Stored in `~/.cloudcurio/credentials.json.gpg`
-3. Can fallback to environment variables if GPG is not available
-4. Supports multiple provider credentials simultaneously
-
-## Agent Configuration
-
-CloudCurio allows persistent configuration of AI agents:
-
-```bash
-# List available agents
-python -m ai_tools.cli list-agents
-
-# Configure an agent with specific provider/model
-python -m ai_tools.cli configure-agent code-analyst --provider openrouter --model mistralai/mistral-7b-instruct
-```
-
-## Terminal Tools Integration
-
-CloudCurio includes integration with Tabby terminal for enhanced development workflows:
-
-1. Setup Tabby terminal with CloudCurio configuration:
-   ```bash
-   ./setup_tabby.sh
-   ```
-
-2. Install Tabby from https://eugeny.github.io/tabby/
-
-3. Launch with CloudCurio configuration:
-   ```bash
-   cloudcurio-terminal
-   ```
-
-The Tabby configuration includes:
-- Pre-configured SSH connections
-- AI-assisted coding features
-- Optimized settings for development
-
-## Configuration Management and Automation
-
-CloudCurio includes several tools for managing and automating your system configuration:
-
-### System Monitoring (SysMon)
-
-A comprehensive system monitoring tool that tracks all system changes:
-
-1. Setup the system monitor:
-   ```bash
-   ./setup_sysmon.sh
-   ```
-
-2. Create your first configuration snapshot:
-   ```bash
-   cloudcurio-sysmon setup
-   ```
-
-3. Monitor system changes:
-   ```bash
-   cloudcurio-sysmon monitor --continuous
-   ```
-
-4. Create configuration snapshots:
-   ```bash
-   cloudcurio-sysmon snapshot my-system-config
-   ```
-
-5. Generate reproduction scripts:
-   ```bash
-   cloudcurio-sysmon reproduce my-system-config reproduce.sh
-   ```
-
-Features of SysMon:
-- Tracks package installations, removals, and updates
-- Monitors service changes
-- Aggregates system logs
-- Captures user configuration files
-- Generates bash scripts to reproduce your system configuration
-- Provides bash completion for all commands
-- Runs as a systemd service for continuous monitoring
-
-### Web-Based Configuration Editor
-
-A web interface for managing system configurations with AI-powered action recording:
-
-1. Setup the configuration editor:
-   ```bash
-   ./setup_config_editor.sh
-   ```
-
-2. Start the web interface:
-   ```bash
-   python config_editor/launcher.py
-   ```
-
-3. Access the web interface at: `http://localhost:8081`
-
-Features of the Configuration Editor:
-- Visual management of services and programs
-- Port scanning to identify running services
-- AI-powered action recording and categorization
-- Puppeteer integration for web automation recording
-- Step grouping for common tasks (like API key creation)
-- Download tracking for installed software
-
-1. Setup the system monitor:
-   ```bash
-   ./setup_sysmon.sh
-   ```
-
-2. Create your first configuration snapshot:
-   ```bash
-   cloudcurio-sysmon setup
-   ```
-
-3. Monitor system changes:
-   ```bash
-   cloudcurio-sysmon monitor --continuous
-   ```
-
-4. Create configuration snapshots:
-   ```bash
-   cloudcurio-sysmon snapshot my-system-config
-   ```
-
-5. Generate reproduction scripts:
-   ```bash
-   cloudcurio-sysmon reproduce my-system-config reproduce.sh
-   ```
-
-Features of SysMon:
-- Tracks package installations, removals, and updates
-- Monitors service changes
-- Aggregates system logs
-- Captures user configuration files
-- Generates bash scripts to reproduce your system configuration
-- Provides bash completion for all commands
-- Runs as a systemd service for continuous monitoring
-
-## Web Interface with Open WebUI
-
-CloudCurio provides integration with Open WebUI for a graphical interface:
-
-1. Setup Open WebUI with Docker:
-   ```bash
-   ./setup_open_webui.sh
-   ```
-
-2. Start the Open WebUI stack:
-   ```bash
-   ./start_open_webui.sh
-   ```
-
-3. Access Open WebUI at http://localhost:3000
-
-The Open WebUI integration includes:
-- Support for local models (Ollama)
-- Multiple AI provider integration (LiteLLM)
-- RAG capabilities with web search
-- Chat interface for interacting with AI models
-
-## Usage
-
-The MCP server provides a REST API to manage AI crews:
-
-- Start a crew: `POST /crews/start`
-- Check status: `GET /crews/{crew_id}`
-- List crews: `GET /crews`
-
-See the [API documentation](MCP_SERVER_DOCS.md) for complete details.
+Welcome to CloudCurio, a project dedicated to creating a self-managing, self-documenting, and self-improving personal computing ecosystem. This repository is the central nervous system for a **Sentient Homelab**, an ambitious initiative to blend advanced AI, robust system monitoring, and comprehensive configuration management into a single, cohesive platform.
+
+Our vision is to transform how we interact with our digital environments. Instead of manually configuring systems, managing packages, and debugging issues, CloudCurio empowers an AI-driven orchestrator to handle these tasks autonomously. This is **Configuration as Code (CaC)** evolved—a living, intelligent system that understands its own state and acts to maintain and enhance it.
+
+For a deeper dive into the philosophy and long-term goals of this project, please read our [**PROJECT_VISION.md**](PROJECT_VISION.md).
+
+## 🚀 The Grand Plan: A Unified Roadmap
+
+We have a clear, phased approach to achieving this vision. Our roadmap outlines the journey from enhancing our current tools to deploying a fully autonomous AI orchestrator. Key phases include:
+
+1.  **Integration & Enhancement:** Fortifying our system discovery tools to generate robust, version-controlled configuration templates (e.g., Ansible playbooks).
+2.  **Monitoring & Knowledge:** Deploying a comprehensive monitoring stack (Prometheus, Grafana, Loki) and building a centralized, queryable knowledge base.
+3.  **AI Orchestration:** Developing the "master brain" that ingests system data, reasons about it, and dispatches AI agents to perform tasks.
+
+For a detailed breakdown of all upcoming features, tasks, and priorities, please see our master [**ROADMAP.md**](ROADMAP.md).
+
+## Core Components
+
+CloudCurio is a monorepo containing a suite of powerful, integrated tools that form the building blocks of the Sentient Homelab.
+
+### 🧠 AI & Crew Management (`/crew`, `/ai_tools`)
+
+The core intelligence of the platform.
+*   **AI Provider Integration:** A multi-provider framework supporting dozens of models from OpenAI, Google, Anthropic, and local instances via Ollama.
+*   **CrewAI Framework:** Orchestrates teams of specialized AI agents to perform complex tasks like code analysis, documentation, and automated debugging.
+*   **MCP Server:** A central server for managing and deploying AI crews via a REST API.
+
+### 🖥️ System Monitoring & CaC (`/sysmon`)
+
+The system's "digital twin," providing continuous awareness of its state.
+*   **System State Discovery:** `sysmon` automatically tracks package installations (`apt`, `pip`, `npm`, Homebrew), service changes, and configuration file modifications.
+*   **Reproducibility:** It can generate snapshots of the system's state and create shell scripts or (in the future) Ansible playbooks to replicate the configuration elsewhere.
+*   **Continuous Monitoring:** Designed to run as a `systemd` service, providing a constant stream of data for the AI orchestrator.
+
+### 🛠️ Configuration & Management (`/config_editor`, `/open_webui`)
+
+Tools for interacting with and managing the platform.
+*   **Web-Based Config Editor:** A UI for visually managing system configurations and services.
+*   **Open WebUI Integration:** Provides a chat interface for interacting directly with the underlying AI models.
+*   **Terminal Tools:** Includes a pre-configured Tabby terminal setup for an enhanced development workflow.
+
+## Getting Started
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/cbwinslow/cloudcurio.git
+    cd cloudcurio
+    ```
+
+2.  **Run the complete setup:**
+    This script will guide you through installing dependencies, setting up configurations, and preparing the environment.
+    ```bash
+    ./complete_setup.sh
+    ```
+
+3.  **Explore the Components:**
+    Each component directory (e.g., `/sysmon`, `/crew`) contains its own `README.md` with detailed instructions.
 
 ## Contributing
 
-We welcome contributions to CloudCurio! Please see our [contributing guidelines](CONTRIBUTING.md) for more information.
+This is a living project, and we welcome contributions. Whether it's by improving the code, enhancing the documentation, or suggesting new features, your input is valuable. Please see our [**CONTRIBUTING.md**](CONTRIBUTING.md) to get started.
 
-## License
+---
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 🛠️ For Developers & Advanced Users
+
+This `README.md` provides a high-level overview of the project's vision and components. For detailed technical information, including installation options, build instructions, API usage, and advanced configuration, please refer to our comprehensive:
+
+### 📖 [**DEVELOPER_GUIDE.md**](./DEVELOPER_GUIDE.md)
+
+The developer guide covers everything you need to know to contribute to the project, set up a full development environment, and use the advanced features of the CloudCurio platform.
